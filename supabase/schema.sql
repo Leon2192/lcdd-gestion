@@ -67,6 +67,7 @@ drop policy if exists "objetivos_update_all" on public.objetivos;
 drop policy if exists "pedidos_select_authenticated" on public.pedidos;
 drop policy if exists "pedidos_insert_authenticated" on public.pedidos;
 drop policy if exists "pedidos_update_authenticated" on public.pedidos;
+drop policy if exists "pedidos_delete_authenticated" on public.pedidos;
 drop policy if exists "pedido_items_select_authenticated" on public.pedido_items;
 drop policy if exists "pedido_items_insert_authenticated" on public.pedido_items;
 drop policy if exists "pedido_items_delete_authenticated" on public.pedido_items;
@@ -127,6 +128,12 @@ for update
 to authenticated
 using (true)
 with check (true);
+
+create policy "pedidos_delete_authenticated"
+on public.pedidos
+for delete
+to authenticated
+using (true);
 
 create policy "pedido_items_select_authenticated"
 on public.pedido_items

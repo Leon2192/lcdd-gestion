@@ -232,3 +232,16 @@ export async function updatePedidoEstado(id, estado) {
 
   return data;
 }
+
+export async function deletePedido(id) {
+  assertSupabaseEnv();
+
+  const { error } = await supabase.from("pedidos").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return true;
+}

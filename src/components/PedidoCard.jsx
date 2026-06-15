@@ -6,6 +6,7 @@ import {
   IconPackage,
   IconPencil,
   IconProgressCheck,
+  IconTrash,
   IconTruckDelivery,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
@@ -19,7 +20,7 @@ import {
 
 export default function PedidoCard({ pedido, onEdit }) {
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const { updatePedidoEstado, loading } = usePedidos();
+  const { updatePedidoEstado, deletePedido, loading } = usePedidos();
   const phone = normalizePhone(pedido.telefono);
   const totalProductos = pedido.items.reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
   const nextAction = getNextPedidoStatusAction(pedido.estado);
@@ -109,6 +110,29 @@ export default function PedidoCard({ pedido, onEdit }) {
                 Editar
               </Button>
             ) : null}
+            <Button
+              variant="light"
+              color="red"
+              size="xs"
+              fullWidth={isMobile}
+              loading={loading.deletePedido}
+              leftSection={<IconTrash size={15} />}
+              onClick={async () => {
+                const confirmed = window.confirm(
+                  `¿Querés eliminar el pedido #${pedido.id} de ${pedido.cliente_nombre}?`
+                );
+
+                if (!confirmed) {
+                  return;
+                }
+
+                try {
+                  await deletePedido(pedido.id);
+                } catch {}
+              }}
+            >
+              Eliminar
+            </Button>
             <Button
               component={Link}
               to={`/pedidos/${pedido.id}`}

@@ -13,8 +13,8 @@ import {
   Title,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconArrowLeft, IconBrandWhatsapp, IconInfoCircle, IconPencil } from "@tabler/icons-react";
-import { Link, useParams } from "react-router-dom";
+import { IconArrowLeft, IconBrandWhatsapp, IconInfoCircle, IconPencil, IconTrash } from "@tabler/icons-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ModalForm from "../components/ModalForm";
 import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
@@ -35,7 +35,8 @@ import {
 export default function PedidoDetailPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { id } = useParams();
-  const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, loading, error } = usePedidos();
+  const navigate = useNavigate();
+  const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, deletePedido, loading, error } = usePedidos();
   const [opened, setOpened] = useState(false);
   const [form, setForm] = useState(initialPedidoForm);
   const [formError, setFormError] = useState("");
@@ -151,6 +152,21 @@ export default function PedidoDetailPage() {
     }
   }
 
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      `¿Querés eliminar el pedido #${selectedPedido.id} de ${selectedPedido.cliente_nombre}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deletePedido(selectedPedido.id);
+      navigate("/pedidos", { replace: true });
+    } catch {}
+  }
+
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="flex-start" gap="md">
@@ -181,6 +197,15 @@ export default function PedidoDetailPage() {
               Editar pedido
             </Button>
           ) : null}
+          <Button
+            variant="light"
+            color="red"
+            leftSection={<IconTrash size={16} />}
+            loading={loading.deletePedido}
+            onClick={handleDelete}
+          >
+            Eliminar pedido
+          </Button>
           {phone ? (
             <Button
               component="a"
@@ -200,6 +225,12 @@ export default function PedidoDetailPage() {
       {error.updatePedido ? (
         <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
           {error.updatePedido}
+        </Alert>
+      ) : null}
+
+      {error.deletePedido ? (
+        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+          {error.deletePedido}
         </Alert>
       ) : null}
 

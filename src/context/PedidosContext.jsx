@@ -1,6 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import {
   createPedido as createPedidoRequest,
+  deletePedido as deletePedidoRequest,
   getPedidoById,
   getPedidos,
   updatePedido as updatePedidoRequest,
@@ -15,6 +16,7 @@ const initialLoading = {
   createPedido: false,
   editPedido: false,
   updatePedido: false,
+  deletePedido: false,
 };
 
 const initialErrors = {
@@ -23,6 +25,7 @@ const initialErrors = {
   createPedido: null,
   editPedido: null,
   updatePedido: null,
+  deletePedido: null,
 };
 
 export function PedidosProvider({ children }) {
@@ -129,6 +132,26 @@ export function PedidosProvider({ children }) {
     }
   }
 
+  async function removePedido(id) {
+    setLoading((prev) => ({ ...prev, deletePedido: true }));
+    setError((prev) => ({ ...prev, deletePedido: null }));
+
+    try {
+      await deletePedidoRequest(id);
+      await fetchPedidos();
+
+      if (selectedPedido?.id === Number(id)) {
+        setSelectedPedido(null);
+      }
+    } catch (deleteError) {
+      const message = deleteError.message || "No se pudo eliminar el pedido.";
+      setError((prev) => ({ ...prev, deletePedido: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, deletePedido: false }));
+    }
+  }
+
   useEffect(() => {
     fetchPedidos().catch(() => null);
   }, []);
@@ -143,6 +166,7 @@ export function PedidosProvider({ children }) {
       fetchPedidoById,
       createPedido,
       editPedido,
+      deletePedido: removePedido,
       updatePedidoEstado: changePedidoEstado,
     }),
     [pedidos, selectedPedido, loading, error]
