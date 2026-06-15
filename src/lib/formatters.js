@@ -46,6 +46,20 @@ export function normalizePhone(phone) {
   return (phone || "").replace(/\D/g, "");
 }
 
+export function buildWhatsAppUrl(phone, message = "") {
+  const normalizedPhone = normalizePhone(phone);
+
+  if (!normalizedPhone) {
+    return "";
+  }
+
+  if (!message) {
+    return `https://wa.me/${normalizedPhone}`;
+  }
+
+  return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+}
+
 export function getCurrentMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;

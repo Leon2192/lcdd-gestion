@@ -3,6 +3,7 @@ import {
   getConsultas,
   createConsulta as createConsultaRequest,
   updateConsulta as updateConsultaRequest,
+  updateConsultaEstado as updateConsultaEstadoRequest,
 } from "../services/consultasService";
 import {
   getObjetivos,
@@ -17,6 +18,7 @@ const initialLoading = {
   objetivos: false,
   createConsulta: false,
   updateConsulta: false,
+  updateConsultaEstado: false,
   createObjetivo: false,
   updateObjetivo: false,
 };
@@ -26,6 +28,7 @@ const initialErrors = {
   objetivos: null,
   createConsulta: null,
   updateConsulta: null,
+  updateConsultaEstado: null,
   createObjetivo: null,
   updateObjetivo: null,
 };
@@ -104,6 +107,23 @@ export function DashboardProvider({ children }) {
     }
   }
 
+  async function updateConsultaEstado(id, estado) {
+    setLoading((prev) => ({ ...prev, updateConsultaEstado: true }));
+    setErrors((prev) => ({ ...prev, updateConsultaEstado: null }));
+
+    try {
+      const updated = await updateConsultaEstadoRequest(id, estado);
+      await loadConsultas();
+      return updated;
+    } catch (error) {
+      const message = error.message || "No se pudo actualizar el estado del lead.";
+      setErrors((prev) => ({ ...prev, updateConsultaEstado: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, updateConsultaEstado: false }));
+    }
+  }
+
   async function createObjetivo(payload) {
     setLoading((prev) => ({ ...prev, createObjetivo: true }));
     setErrors((prev) => ({ ...prev, createObjetivo: null }));
@@ -162,9 +182,11 @@ export function DashboardProvider({ children }) {
       loading,
       errors,
       loadConsultas,
+      fetchConsultas: loadConsultas,
       loadObjetivos,
       createConsulta,
       updateConsulta,
+      updateConsultaEstado,
       createObjetivo,
       changeObjetivoEstado,
     }),

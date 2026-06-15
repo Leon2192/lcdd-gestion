@@ -19,6 +19,8 @@ create table if not exists public.consultas (
   articulo text not null,
   telefono text not null,
   observaciones text,
+  fecha_recontacto date not null,
+  estado text not null default 'nuevo' check (estado in ('nuevo', 'contactado', 'convertido', 'rechazado')),
   created_at timestamptz not null default now()
 );
 
