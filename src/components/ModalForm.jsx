@@ -1,4 +1,4 @@
-import { Button, Drawer, Group, ScrollArea } from "@mantine/core";
+import { Button, Drawer, Group } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 
 export default function ModalForm({
@@ -22,20 +22,52 @@ export default function ModalForm({
       size={isMobile ? "100%" : size}
       overlayProps={{ blur: 2 }}
       padding={isMobile ? "md" : "xl"}
-      scrollAreaComponent={ScrollArea.Autosize}
       styles={{
         content: {
-          maxHeight: isMobile ? "100dvh" : undefined,
+          height: isMobile ? "100dvh" : "100vh",
+          maxHeight: "100dvh",
         },
         body: {
-          overflowY: "auto",
-          paddingBottom: isMobile ? 24 : undefined,
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "hidden",
+          paddingBottom: 0,
         },
       }}
     >
-      <form onSubmit={onSubmit}>
-        {children}
-        <Group justify="flex-end" mt="xl" grow={isMobile}>
+      <form
+        onSubmit={onSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          height: "100%",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            paddingBottom: 24,
+            paddingRight: isMobile ? 0 : 4,
+          }}
+        >
+          {children}
+        </div>
+        <Group
+          justify="flex-end"
+          mt="md"
+          grow={isMobile}
+          style={{
+            flexShrink: 0,
+            paddingTop: 12,
+            paddingBottom: isMobile ? 24 : 0,
+            background: "rgba(249, 252, 252, 0.98)",
+            borderTop: "1px solid rgba(111, 143, 155, 0.16)",
+          }}
+        >
           <Button type="button" variant="default" onClick={onClose}>
             Cancelar
           </Button>
