@@ -20,6 +20,7 @@ const navItems = [
     description: "Metas mensuales",
     path: "/objetivos",
     icon: IconTargetArrow,
+    hidden: true,
   },
   {
     label: "Pedidos",
@@ -44,7 +45,7 @@ export default function Sidebar({ onNavigate }) {
       </Card>
 
       <Stack gap="xs">
-        {navItems.map((item) => (
+        {navItems.filter((item) => !item.hidden).map((item) => (
           <NavLink
             key={item.path}
             active={location.pathname.startsWith(item.path)}
