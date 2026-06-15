@@ -1,0 +1,27 @@
+{
+  "name": "lcdd-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mantine/core": "^7.11.2",
+    "@mantine/dates": "^7.17.8",
+    "@mantine/hooks": "^7.11.2",
+    "@supabase/supabase-js": "^2.50.0",
+    "@tabler/icons-react": "^3.7.0",
+    "dayjs": "^1.11.21",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "recharts": "^2.12.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
+  }
+}

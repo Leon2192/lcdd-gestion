@@ -1,0 +1,89 @@
+:root {
+  --color-primary: #afc5ce;
+  --color-primary-hover: #9fb8c2;
+  --color-primary-light: #dce8ec;
+  --color-primary-dark: #6f8f9b;
+  --color-surface: #f5f8f9;
+  --color-surface-strong: #edf3f5;
+  --color-text: #24343a;
+  --color-border: rgba(111, 143, 155, 0.18);
+  color-scheme: light;
+  background:
+    radial-gradient(circle at top left, rgba(175, 197, 206, 0.24), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(111, 143, 155, 0.14), transparent 26%),
+    #f7fafb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background:
+    linear-gradient(180deg, rgba(251, 253, 253, 0.96) 0%, rgba(243, 247, 248, 0.98) 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-shell {
+  position: relative;
+}
+
+.page-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(36, 52, 58, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 52, 58, 0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.fab-safe-area {
+  padding-bottom: 108px;
+}
+
+.brand-logo {
+  display: block;
+  width: clamp(120px, 16vw, 200px);
+  height: auto;
+  object-fit: contain;
+}
+
+.mobile-list {
+  display: grid;
+  gap: 12px;
+}
+
+.responsive-table-wrap {
+  overflow-x: auto;
+}
+
+@media (max-width: 48em) {
+  .fab-safe-area {
+    padding-bottom: 124px;
+  }
+
+  .brand-logo {
+    width: clamp(120px, 34vw, 150px);
+  }
+}
