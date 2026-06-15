@@ -1,7 +1,9 @@
 import { supabase } from "../lib/supabaseClient";
 import { assertSupabaseEnv } from "../lib/supabaseEnv";
+import { calculatePedidoPayment, canalVentaOptions } from "../lib/pedidos";
 
 const ESTADOS_VALIDOS = ["en_curso", "enviado", "entregado"];
+const CANALES_VALIDOS = canalVentaOptions.map((item) => item.value);
 
 function normalizePedidoItems(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -50,8 +52,20 @@ function normalizePedidoPayload(payload) {
     throw new Error("El estado del pedido debe ser en_curso, enviado o entregado.");
   }
 
+  if (!CANALES_VALIDOS.includes(payload.canal_venta)) {
+    throw new Error("Seleccioná un canal de venta válido.");
+  }
+
   const items = normalizePedidoItems(payload.items);
   const total = items.reduce((acc, item) => acc + item.subtotal, 0);
+  const pagoCompletado = Boolean(payload.pago_completado);
+  const anticipoPagado = pagoCompletado ? false : Boolean(payload.anticipo_50_pagado);
+
+  if (Boolean(payload.es_envio) && !payload.direccion_envio?.trim()) {
+    throw new Error("La dirección de envío es obligatoria cuando el pedido requiere envío.");
+  }
+
+  const payment = calculatePedidoPayment(total, anticipoPagado, pagoCompletado);
 
   return {
     pedido: {
@@ -61,6 +75,14 @@ function normalizePedidoPayload(payload) {
       es_envio: Boolean(payload.es_envio),
       estado: payload.estado,
       total,
+      anticipo_50_pagado: anticipoPagado,
+      pago_completado: pagoCompletado,
+      monto_pagado: payment.monto_pagado,
+      saldo_pendiente: payment.saldo_pendiente,
+      canal_venta: payload.canal_venta,
+      direccion_envio: payload.direccion_envio?.trim() || null,
+      localidad: payload.localidad?.trim() || null,
+      provincia: payload.provincia?.trim() || null,
     },
     items,
   };
@@ -91,6 +113,14 @@ function transformPedido(record) {
     es_envio: record.es_envio,
     estado: record.estado,
     total: Number(record.total || 0),
+    anticipo_50_pagado: Boolean(record.pago_completado) ? false : Boolean(record.anticipo_50_pagado),
+    pago_completado: Boolean(record.pago_completado),
+    monto_pagado: Number(record.monto_pagado || 0),
+    saldo_pendiente: Number(record.saldo_pendiente || 0),
+    canal_venta: record.canal_venta,
+    direccion_envio: record.direccion_envio,
+    localidad: record.localidad,
+    provincia: record.provincia,
     created_at: record.created_at,
     items,
   };
@@ -244,4 +274,31 @@ export async function deletePedido(id) {
   }
 
   return true;
+}
+
+export async function markPedidoPagoCompletado(id) {
+  assertSupabaseEnv();
+
+  const pedidoActual = await getPedidoById(id);
+
+  if (!pedidoActual) {
+    throw new Error("No se encontró el pedido.");
+  }
+
+  const { error } = await supabase
+    .from("pedidos")
+    .update({
+      anticipo_50_pagado: false,
+      pago_completado: true,
+      monto_pagado: Number(pedidoActual.total || 0),
+      saldo_pendiente: 0,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return getPedidoById(id);
 }

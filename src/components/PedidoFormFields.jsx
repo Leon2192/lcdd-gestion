@@ -1,8 +1,8 @@
-import { ActionIcon, Button, Card, Grid, Group, NumberInput, Select, Stack, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Alert, Button, Card, Grid, Group, NumberInput, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { formatCurrency } from "../lib/formatters";
 import { envioOptions, createEmptyPedidoItem } from "../lib/pedidoForm";
-import { pedidoStatusOptions } from "../lib/pedidos";
+import { calculatePedidoPayment, canalVentaOptions, pedidoStatusOptions } from "../lib/pedidos";
 import { productOptions } from "../lib/productOptions";
 
 export default function PedidoFormFields({ form, setForm, setFormError, isMobile }) {
@@ -39,6 +39,11 @@ export default function PedidoFormFields({ form, setForm, setFormError, isMobile
     const precio = Number(item.precio_unitario || 0);
     return acc + cantidad * precio;
   }, 0);
+  const payment = calculatePedidoPayment(
+    totalPedido,
+    form.anticipo_50_pagado,
+    form.pago_completado
+  );
 
   return (
     <Stack gap="lg">
@@ -105,7 +110,102 @@ export default function PedidoFormFields({ form, setForm, setFormError, isMobile
             required
           />
         </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Select
+            label="Canal de venta"
+            data={canalVentaOptions}
+            value={form.canal_venta}
+            onChange={(value) => {
+              setForm((prev) => ({ ...prev, canal_venta: value || "" }));
+              setFormError("");
+            }}
+            placeholder="Seleccioná un canal"
+            required
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 3 }}>
+          <Switch
+            mt={28}
+            label="Se cobró el 50% inicial"
+            checked={Boolean(form.anticipo_50_pagado)}
+            onChange={(event) => {
+              const checked = event.currentTarget.checked;
+              setForm((prev) => ({
+                ...prev,
+                anticipo_50_pagado: checked,
+                pago_completado: checked ? false : prev.pago_completado,
+              }));
+              setFormError("");
+            }}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 3 }}>
+          <Switch
+            mt={28}
+            label="Pago completado"
+            checked={Boolean(form.pago_completado)}
+            onChange={(event) => {
+              const checked = event.currentTarget.checked;
+              setForm((prev) => ({
+                ...prev,
+                pago_completado: checked,
+                anticipo_50_pagado: checked ? false : prev.anticipo_50_pagado,
+              }));
+              setFormError("");
+            }}
+          />
+        </Grid.Col>
       </Grid>
+
+      <Card p="md" bg="#f8fbfc">
+        <Stack gap="sm">
+          <Text fw={700}>Datos de envío</Text>
+          {form.es_envio === "si" ? (
+            <Alert color="brand" variant="light">
+              Este pedido requiere envío. La dirección es obligatoria.
+            </Alert>
+          ) : null}
+          <Grid>
+            <Grid.Col span={{ base: 12 }}>
+              <TextInput
+                label="Dirección de envío"
+                name="direccion_envio"
+                value={form.direccion_envio}
+                onChange={(event) => {
+                  handleChange(event);
+                  setFormError("");
+                }}
+                placeholder="Calle, número, piso, depto"
+                required={form.es_envio === "si"}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Localidad"
+                name="localidad"
+                value={form.localidad}
+                onChange={(event) => {
+                  handleChange(event);
+                  setFormError("");
+                }}
+                placeholder="Localidad"
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Provincia"
+                name="provincia"
+                value={form.provincia}
+                onChange={(event) => {
+                  handleChange(event);
+                  setFormError("");
+                }}
+                placeholder="Provincia"
+              />
+            </Grid.Col>
+          </Grid>
+        </Stack>
+      </Card>
 
       <Stack gap="sm">
         <Group justify="space-between" align="center">
@@ -220,6 +320,24 @@ export default function PedidoFormFields({ form, setForm, setFormError, isMobile
             </Text>
           </Stack>
         </Group>
+        <Grid mt="md">
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Text c="dimmed" fz="xs" fw={700} tt="uppercase">
+              Monto pagado
+            </Text>
+            <Text fw={700} fz="lg">
+              {formatCurrency(payment.monto_pagado)}
+            </Text>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Text c="dimmed" fz="xs" fw={700} tt="uppercase">
+              Saldo pendiente
+            </Text>
+            <Text fw={700} fz="lg" c={payment.saldo_pendiente > 0 ? "red.6" : "green.7"}>
+              {formatCurrency(payment.saldo_pendiente)}
+            </Text>
+          </Grid.Col>
+        </Grid>
       </Card>
     </Stack>
   );

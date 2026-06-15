@@ -117,6 +117,16 @@ export default function PedidosPage() {
       return;
     }
 
+    if (!form.canal_venta) {
+      setFormError("El canal de venta es obligatorio.");
+      return;
+    }
+
+    if (form.es_envio === "si" && !form.direccion_envio.trim()) {
+      setFormError("La dirección de envío es obligatoria cuando el pedido requiere envío.");
+      return;
+    }
+
     if (!form.items.length) {
       setFormError("Debés cargar al menos 1 producto.");
       return;
@@ -217,6 +227,18 @@ export default function PedidosPage() {
       {error.updatePedido ? (
         <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
           {error.updatePedido}
+        </Alert>
+      ) : null}
+
+      {error.deletePedido ? (
+        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+          {error.deletePedido}
+        </Alert>
+      ) : null}
+
+      {error.markPagoCompletado ? (
+        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+          {error.markPagoCompletado}
         </Alert>
       ) : null}
 

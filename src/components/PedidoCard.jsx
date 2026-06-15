@@ -13,8 +13,11 @@ import { Link } from "react-router-dom";
 import { usePedidos } from "../hooks/usePedidos";
 import { formatCurrency, formatDate, formatYesNo, normalizePhone } from "../lib/formatters";
 import {
+  getCanalVentaLabel,
   getNextPedidoStatusAction,
+  getPedidoPagoStatus,
   getPedidoStatusLabel,
+  pedidoPagoStatusColors,
   pedidoStatusColors,
 } from "../lib/pedidos";
 
@@ -24,6 +27,7 @@ export default function PedidoCard({ pedido, onEdit }) {
   const phone = normalizePhone(pedido.telefono);
   const totalProductos = pedido.items.reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
   const nextAction = getNextPedidoStatusAction(pedido.estado);
+  const pagoStatus = getPedidoPagoStatus(pedido);
 
   return (
     <Card p="lg" bg="rgba(250, 252, 252, 0.96)">
@@ -44,6 +48,14 @@ export default function PedidoCard({ pedido, onEdit }) {
 
         <Stack gap={8}>
           <Group gap="xs">
+            <Badge color={pedidoPagoStatusColors[pagoStatus.value]} variant="light">
+              {pagoStatus.label}
+            </Badge>
+            <Text fz="sm" c="dimmed">
+              {getCanalVentaLabel(pedido.canal_venta)}
+            </Text>
+          </Group>
+          <Group gap="xs">
             <IconCalendarEvent size={16} color="#6f8f9b" />
             <Text fz="sm">Evento: {formatDate(pedido.fecha_evento)}</Text>
           </Group>
@@ -57,13 +69,22 @@ export default function PedidoCard({ pedido, onEdit }) {
           </Group>
         </Stack>
 
-        <Group justify="space-between" align="center" wrap="wrap" gap="md">
+        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
           <Stack gap={2}>
             <Text c="dimmed" fz="xs" tt="uppercase" fw={700}>
               Total
             </Text>
             <Text fw={700} fz="xl">
               {formatCurrency(pedido.total)}
+            </Text>
+            <Text fz="sm">
+              Monto pagado: <Text span fw={700}>{formatCurrency(pedido.monto_pagado)}</Text>
+            </Text>
+            <Text fz="sm" c={pedido.saldo_pendiente > 0 ? "red.6" : "green.7"}>
+              Saldo pendiente:{" "}
+              <Text span fw={700} c={pedido.saldo_pendiente > 0 ? "red.6" : "green.7"}>
+                {formatCurrency(pedido.saldo_pendiente)}
+              </Text>
             </Text>
           </Stack>
           <Group gap="xs" wrap="wrap" justify={isMobile ? "stretch" : "flex-end"} style={{ flex: isMobile ? "1 1 100%" : undefined }}>

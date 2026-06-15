@@ -40,6 +40,14 @@ create table if not exists public.pedidos (
   es_envio boolean not null default false,
   estado public.pedido_estado not null default 'en_curso',
   total numeric(12, 2) not null default 0,
+  anticipo_50_pagado boolean not null default false,
+  pago_completado boolean not null default false,
+  monto_pagado numeric(12, 2) not null default 0,
+  saldo_pendiente numeric(12, 2) not null default 0,
+  canal_venta text,
+  direccion_envio text,
+  localidad text,
+  provincia text,
   created_at timestamptz not null default now()
 );
 

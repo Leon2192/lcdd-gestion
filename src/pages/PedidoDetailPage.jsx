@@ -27,8 +27,11 @@ import {
 } from "../lib/formatters";
 import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 import {
+  getCanalVentaLabel,
   getNextPedidoStatusAction,
+  getPedidoPagoStatus,
   getPedidoStatusLabel,
+  pedidoPagoStatusColors,
   pedidoStatusColors,
 } from "../lib/pedidos";
 
@@ -36,7 +39,7 @@ export default function PedidoDetailPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, deletePedido, loading, error } = usePedidos();
+  const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, deletePedido, markPedidoPagoCompletado, loading, error } = usePedidos();
   const [opened, setOpened] = useState(false);
   const [form, setForm] = useState(initialPedidoForm);
   const [formError, setFormError] = useState("");
@@ -81,6 +84,7 @@ export default function PedidoDetailPage() {
     0
   );
   const nextAction = getNextPedidoStatusAction(selectedPedido.estado);
+  const pagoStatus = getPedidoPagoStatus(selectedPedido);
 
   function handleOpenEdit() {
     if (selectedPedido.estado === "entregado") {
@@ -112,6 +116,16 @@ export default function PedidoDetailPage() {
 
     if (!form.estado) {
       setFormError("El estado es obligatorio.");
+      return;
+    }
+
+    if (!form.canal_venta) {
+      setFormError("El canal de venta es obligatorio.");
+      return;
+    }
+
+    if (form.es_envio === "si" && !form.direccion_envio.trim()) {
+      setFormError("La dirección de envío es obligatoria cuando el pedido requiere envío.");
       return;
     }
 
@@ -152,6 +166,13 @@ export default function PedidoDetailPage() {
     }
   }
 
+  async function handleMarkPagoCompletado() {
+    try {
+      await markPedidoPagoCompletado(selectedPedido.id);
+      await fetchPedidoById(selectedPedido.id);
+    } catch {}
+  }
+
   async function handleDelete() {
     const confirmed = window.confirm(
       `¿Querés eliminar el pedido #${selectedPedido.id} de ${selectedPedido.cliente_nombre}?`
@@ -187,6 +208,9 @@ export default function PedidoDetailPage() {
         <Group gap="sm" wrap="wrap">
           <Badge color={pedidoStatusColors[selectedPedido.estado]} variant="light" size="lg">
             {getPedidoStatusLabel(selectedPedido.estado)}
+          </Badge>
+          <Badge color={pedidoPagoStatusColors[pagoStatus.value]} variant="light" size="lg">
+            {pagoStatus.label}
           </Badge>
           {selectedPedido.estado !== "entregado" ? (
             <Button
@@ -231,6 +255,12 @@ export default function PedidoDetailPage() {
       {error.deletePedido ? (
         <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
           {error.deletePedido}
+        </Alert>
+      ) : null}
+
+      {error.markPagoCompletado ? (
+        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+          {error.markPagoCompletado}
         </Alert>
       ) : null}
 
@@ -347,6 +377,36 @@ export default function PedidoDetailPage() {
                 </Text>
                 <Text>
                   <Text span fw={700}>
+                    Canal de venta:
+                  </Text>{" "}
+                  {getCanalVentaLabel(selectedPedido.canal_venta)}
+                </Text>
+                <Text>
+                  <Text span fw={700}>
+                    Es envío:
+                  </Text>{" "}
+                  {formatYesNo(selectedPedido.es_envio)}
+                </Text>
+                <Text>
+                  <Text span fw={700}>
+                    Dirección:
+                  </Text>{" "}
+                  {selectedPedido.direccion_envio || "-"}
+                </Text>
+                <Text>
+                  <Text span fw={700}>
+                    Localidad:
+                  </Text>{" "}
+                  {selectedPedido.localidad || "-"}
+                </Text>
+                <Text>
+                  <Text span fw={700}>
+                    Provincia:
+                  </Text>{" "}
+                  {selectedPedido.provincia || "-"}
+                </Text>
+                <Text>
+                  <Text span fw={700}>
                     Creado:
                   </Text>{" "}
                   {new Intl.DateTimeFormat("es-AR", {
@@ -358,6 +418,54 @@ export default function PedidoDetailPage() {
                   }).format(new Date(selectedPedido.created_at))}
                 </Text>
               </Stack>
+
+              <Card p="md" bg="#f8fbfc">
+                <Stack gap={6}>
+                  <Text fw={700}>Pagos</Text>
+                  <Text>
+                    <Text span fw={700}>
+                      Total:
+                    </Text>{" "}
+                    {formatCurrency(selectedPedido.total)}
+                  </Text>
+                  <Text>
+                    <Text span fw={700}>
+                      Monto pagado:
+                    </Text>{" "}
+                    {formatCurrency(selectedPedido.monto_pagado)}
+                  </Text>
+                  <Text c={selectedPedido.saldo_pendiente > 0 ? "red.6" : "green.7"}>
+                    <Text span fw={700} c={selectedPedido.saldo_pendiente > 0 ? "red.6" : "green.7"}>
+                      Saldo pendiente:
+                    </Text>{" "}
+                    {formatCurrency(selectedPedido.saldo_pendiente)}
+                  </Text>
+                  <Text>
+                    <Text span fw={700}>
+                      Anticipo 50% pagado:
+                    </Text>{" "}
+                    {formatYesNo(selectedPedido.anticipo_50_pagado)}
+                  </Text>
+                  <Text>
+                    <Text span fw={700}>
+                      Pago completado:
+                    </Text>{" "}
+                    {formatYesNo(selectedPedido.pago_completado)}
+                  </Text>
+                </Stack>
+              </Card>
+
+              {!selectedPedido.pago_completado ? (
+                <Button
+                  color="brand"
+                  variant="filled"
+                  fullWidth={isMobile}
+                  loading={loading.markPagoCompletado}
+                  onClick={handleMarkPagoCompletado}
+                >
+                  Marcar pago completado
+                </Button>
+              ) : null}
 
               {nextAction ? (
                 <Button

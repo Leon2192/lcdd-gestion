@@ -4,6 +4,7 @@ import {
   deletePedido as deletePedidoRequest,
   getPedidoById,
   getPedidos,
+  markPedidoPagoCompletado as markPedidoPagoCompletadoRequest,
   updatePedido as updatePedidoRequest,
   updatePedidoEstado,
 } from "../services/pedidosService";
@@ -17,6 +18,7 @@ const initialLoading = {
   editPedido: false,
   updatePedido: false,
   deletePedido: false,
+  markPagoCompletado: false,
 };
 
 const initialErrors = {
@@ -26,6 +28,7 @@ const initialErrors = {
   editPedido: null,
   updatePedido: null,
   deletePedido: null,
+  markPagoCompletado: null,
 };
 
 export function PedidosProvider({ children }) {
@@ -152,6 +155,28 @@ export function PedidosProvider({ children }) {
     }
   }
 
+  async function markPedidoPagoCompletado(id) {
+    setLoading((prev) => ({ ...prev, markPagoCompletado: true }));
+    setError((prev) => ({ ...prev, markPagoCompletado: null }));
+
+    try {
+      const updated = await markPedidoPagoCompletadoRequest(id);
+      await fetchPedidos();
+
+      if (selectedPedido?.id === Number(id)) {
+        setSelectedPedido(updated);
+      }
+
+      return updated;
+    } catch (paymentError) {
+      const message = paymentError.message || "No se pudo marcar el pago como completado.";
+      setError((prev) => ({ ...prev, markPagoCompletado: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, markPagoCompletado: false }));
+    }
+  }
+
   useEffect(() => {
     fetchPedidos().catch(() => null);
   }, []);
@@ -167,6 +192,7 @@ export function PedidosProvider({ children }) {
       createPedido,
       editPedido,
       deletePedido: removePedido,
+      markPedidoPagoCompletado,
       updatePedidoEstado: changePedidoEstado,
     }),
     [pedidos, selectedPedido, loading, error]
