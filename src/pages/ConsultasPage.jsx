@@ -304,7 +304,10 @@ export default function ConsultasPage() {
   }
 
   function handleOpenBulkOffer() {
-    setBulkOffer(initialBulkOfferState);
+    setBulkOffer({
+      ...initialBulkOfferState,
+      opened: true,
+    });
   }
 
   function handleBulkTemplateChange(templateId) {
