@@ -60,6 +60,10 @@ export default function PedidoCard({ pedido, onEdit }) {
             <Text fz="sm">Evento: {formatDate(pedido.fecha_evento)}</Text>
           </Group>
           <Group gap="xs">
+            <IconCalendarEvent size={16} color="#6f8f9b" />
+            <Text fz="sm">Creado: {formatDate(pedido.created_at)}</Text>
+          </Group>
+          <Group gap="xs">
             <IconTruckDelivery size={16} color="#6f8f9b" />
             <Text fz="sm">Es envío: {formatYesNo(pedido.es_envio)}</Text>
           </Group>

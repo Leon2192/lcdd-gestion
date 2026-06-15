@@ -20,7 +20,7 @@ import PedidoCard from "../components/PedidoCard";
 import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
 import { usePedidos } from "../hooks/usePedidos";
-import { formatCurrency } from "../lib/formatters";
+import { formatCurrency, getEndOfDay, getStartOfDay } from "../lib/formatters";
 import { pedidoStatusOptions } from "../lib/pedidos";
 import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 
@@ -39,13 +39,19 @@ export default function PedidosPage() {
   const filteredPedidos = useMemo(() => {
     return pedidos.filter((pedido) => {
       const [fromDate, toDate] = filters.dateRange;
-      const pedidoDate = new Date(`${pedido.fecha_evento}T00:00:00`);
+      const pedidoCreatedAt = pedido.created_at ? new Date(pedido.created_at) : null;
+      const fromDateStart = getStartOfDay(fromDate);
+      const toDateEnd = getEndOfDay(toDate);
 
-      if (fromDate && pedidoDate < fromDate) {
+      if (!pedidoCreatedAt || Number.isNaN(pedidoCreatedAt.getTime())) {
         return false;
       }
 
-      if (toDate && pedidoDate > toDate) {
+      if (fromDateStart && pedidoCreatedAt < fromDateStart) {
+        return false;
+      }
+
+      if (toDateEnd && pedidoCreatedAt > toDateEnd) {
         return false;
       }
 
@@ -184,7 +190,7 @@ export default function PedidosPage() {
             <div>
               <Text fw={700}>Filtros</Text>
               <Text c="dimmed" fz="sm">
-                Filtrá por rango de fechas del evento y estado del pedido.
+                Filtrá por rango de fechas de creación y estado del pedido.
               </Text>
             </div>
             <Button type="button" variant="default" onClick={resetFilters} fullWidth={isMobile}>
@@ -196,7 +202,7 @@ export default function PedidosPage() {
             <Grid.Col span={{ base: 12, md: 7 }}>
               <DatePickerInput
                 type="range"
-                label="Rango de fechas"
+                label="Rango de fechas de creación"
                 placeholder="Seleccioná un período"
                 value={filters.dateRange}
                 onChange={(value) => setFilters((prev) => ({ ...prev, dateRange: value }))}

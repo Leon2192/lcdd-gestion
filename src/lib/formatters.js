@@ -1,5 +1,25 @@
-export function formatDate(dateValue) {
+function parseDateValue(dateValue) {
   if (!dateValue) {
+    return null;
+  }
+
+  if (dateValue instanceof Date) {
+    return Number.isNaN(dateValue.getTime()) ? null : dateValue;
+  }
+
+  if (typeof dateValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    const [year, month, day] = dateValue.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(dateValue);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function formatDate(dateValue) {
+  const parsedDate = parseDateValue(dateValue);
+
+  if (!parsedDate) {
     return "-";
   }
 
@@ -7,7 +27,7 @@ export function formatDate(dateValue) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(new Date(`${dateValue}T00:00:00`));
+  }).format(parsedDate);
 }
 
 export function formatMonthLabel(monthValue) {
@@ -41,4 +61,28 @@ export function formatCurrency(value) {
 
 export function formatYesNo(value) {
   return value ? "Si" : "No";
+}
+
+export function getStartOfDay(dateValue) {
+  const parsedDate = parseDateValue(dateValue);
+
+  if (!parsedDate) {
+    return null;
+  }
+
+  const startOfDay = new Date(parsedDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  return startOfDay;
+}
+
+export function getEndOfDay(dateValue) {
+  const parsedDate = parseDateValue(dateValue);
+
+  if (!parsedDate) {
+    return null;
+  }
+
+  const endOfDay = new Date(parsedDate);
+  endOfDay.setHours(23, 59, 59, 999);
+  return endOfDay;
 }
