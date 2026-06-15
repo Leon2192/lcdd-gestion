@@ -83,8 +83,12 @@ export default function PedidosPage() {
     const enCurso = filteredPedidos.filter((item) => item.estado === "en_curso").length;
     const enviados = filteredPedidos.filter((item) => item.estado === "enviado").length;
     const entregados = filteredPedidos.filter((item) => item.estado === "entregado").length;
+    const totalGenerado = filteredPedidos.reduce(
+      (acc, item) => acc + Number(item.total || 0),
+      0
+    );
 
-    return { total, enCurso, enviados, entregados };
+    return { total, enCurso, enviados, entregados, totalGenerado };
   }, [filteredPedidos]);
 
   const totalPedido = useMemo(
@@ -257,20 +261,27 @@ export default function PedidosPage() {
         </Alert>
       ) : null}
 
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
+      <SimpleGrid cols={{ base: 1, md: 2, xl: 5 }} spacing="lg">
+        <div>
           <StatCard title="Total de pedidos" value={stats.total} subtitle="Pedidos registrados" />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
+        </div>
+        <div>
           <StatCard title="Pedidos en curso" value={stats.enCurso} subtitle="Producción activa" />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
+        </div>
+        <div>
           <StatCard title="Pedidos enviados" value={stats.enviados} subtitle="En camino" />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
+        </div>
+        <div>
           <StatCard title="Pedidos entregados" value={stats.entregados} subtitle="Cerrados" />
-        </Grid.Col>
-      </Grid>
+        </div>
+        <div>
+          <StatCard
+            title="Total generado"
+            value={formatCurrency(stats.totalGenerado)}
+            subtitle="Importe acumulado según filtros activos"
+          />
+        </div>
+      </SimpleGrid>
 
       {loading.pedidos ? (
         <Card p="xl" bg="rgba(250, 252, 252, 0.96)">
