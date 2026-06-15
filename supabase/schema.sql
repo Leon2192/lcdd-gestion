@@ -60,6 +60,7 @@ alter table public.pedido_items enable row level security;
 
 drop policy if exists "consultas_select_all" on public.consultas;
 drop policy if exists "consultas_insert_all" on public.consultas;
+drop policy if exists "consultas_update_authenticated" on public.consultas;
 drop policy if exists "objetivos_select_all" on public.objetivos;
 drop policy if exists "objetivos_insert_all" on public.objetivos;
 drop policy if exists "objetivos_update_all" on public.objetivos;
@@ -68,6 +69,7 @@ drop policy if exists "pedidos_insert_authenticated" on public.pedidos;
 drop policy if exists "pedidos_update_authenticated" on public.pedidos;
 drop policy if exists "pedido_items_select_authenticated" on public.pedido_items;
 drop policy if exists "pedido_items_insert_authenticated" on public.pedido_items;
+drop policy if exists "pedido_items_delete_authenticated" on public.pedido_items;
 
 create policy "consultas_select_authenticated"
 on public.consultas
@@ -79,6 +81,13 @@ create policy "consultas_insert_authenticated"
 on public.consultas
 for insert
 to authenticated
+with check (true);
+
+create policy "consultas_update_authenticated"
+on public.consultas
+for update
+to authenticated
+using (true)
 with check (true);
 
 create policy "objetivos_select_authenticated"
@@ -130,3 +139,9 @@ on public.pedido_items
 for insert
 to authenticated
 with check (true);
+
+create policy "pedido_items_delete_authenticated"
+on public.pedido_items
+for delete
+to authenticated
+using (true);

@@ -1,56 +1,35 @@
 import { useMemo, useState } from "react";
 import {
-  ActionIcon,
   Alert,
   Button,
   Card,
   Grid,
   Group,
-  NumberInput,
   Select,
   SimpleGrid,
   Stack,
   Text,
-  TextInput,
   Title,
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconInfoCircle, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import FloatingActionButton from "../components/FloatingActionButton";
 import ModalForm from "../components/ModalForm";
 import PedidoCard from "../components/PedidoCard";
+import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
 import { usePedidos } from "../hooks/usePedidos";
 import { formatCurrency } from "../lib/formatters";
-import { getPedidoStatusLabel, pedidoStatusOptions } from "../lib/pedidos";
-import { productOptions } from "../lib/productOptions";
-
-const envioOptions = [
-  { value: "no", label: "No" },
-  { value: "si", label: "Si" },
-];
-
-const createEmptyItem = () => ({
-  producto_nombre: "",
-  cantidad: 1,
-  precio_unitario: 0,
-});
-
-const initialForm = {
-  cliente_nombre: "",
-  telefono: "",
-  fecha_evento: "",
-  es_envio: "no",
-  estado: "en_curso",
-  items: [createEmptyItem()],
-};
+import { pedidoStatusOptions } from "../lib/pedidos";
+import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 
 export default function PedidosPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const { pedidos, loading, error, createPedido } = usePedidos();
+  const { pedidos, loading, error, createPedido, editPedido } = usePedidos();
   const [opened, setOpened] = useState(false);
-  const [form, setForm] = useState(initialForm);
+  const [editingPedido, setEditingPedido] = useState(null);
+  const [form, setForm] = useState(initialPedidoForm);
   const [formError, setFormError] = useState("");
   const [filters, setFilters] = useState({
     dateRange: [null, null],
@@ -91,18 +70,9 @@ export default function PedidosPage() {
     return { total, enCurso, enviados, entregados, totalGenerado };
   }, [filteredPedidos]);
 
-  const totalPedido = useMemo(
-    () =>
-      form.items.reduce((acc, item) => {
-        const cantidad = Number(item.cantidad || 0);
-        const precio = Number(item.precio_unitario || 0);
-        return acc + cantidad * precio;
-      }, 0),
-    [form.items]
-  );
-
   function resetForm() {
-    setForm(initialForm);
+    setForm(initialPedidoForm);
+    setEditingPedido(null);
     setFormError("");
   }
 
@@ -113,32 +83,15 @@ export default function PedidosPage() {
     });
   }
 
-  function handleChange(event) {
-    const { name, value } = event.currentTarget;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
+  function handleEditPedido(pedido) {
+    if (pedido.estado === "entregado") {
+      return;
+    }
 
-  function updateItem(index, field, value) {
-    setForm((prev) => ({
-      ...prev,
-      items: prev.items.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item
-      ),
-    }));
-  }
-
-  function addItem() {
-    setForm((prev) => ({
-      ...prev,
-      items: [...prev.items, createEmptyItem()],
-    }));
-  }
-
-  function removeItem(index) {
-    setForm((prev) => ({
-      ...prev,
-      items: prev.items.filter((_, itemIndex) => itemIndex !== index),
-    }));
+    setEditingPedido(pedido);
+    setForm(mapPedidoToForm(pedido));
+    setFormError("");
+    setOpened(true);
   }
 
   async function handleSubmit(event) {
@@ -184,17 +137,23 @@ export default function PedidosPage() {
     }
 
     try {
-      await createPedido({
+      const payload = {
         ...form,
         es_envio: form.es_envio === "si",
-        total: totalPedido,
         items: form.items.map((item) => ({
           ...item,
           cantidad: Number(item.cantidad || 0),
           precio_unitario: Number(item.precio_unitario || 0),
           subtotal: Number(item.cantidad || 0) * Number(item.precio_unitario || 0),
         })),
-      });
+      };
+
+      if (editingPedido) {
+        await editPedido(editingPedido.id, payload);
+      } else {
+        await createPedido(payload);
+      }
+
       resetForm();
       setOpened(false);
     } catch (submitError) {
@@ -292,7 +251,7 @@ export default function PedidosPage() {
       ) : (
         <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
           {filteredPedidos.map((pedido) => (
-            <PedidoCard key={pedido.id} pedido={pedido} />
+            <PedidoCard key={pedido.id} pedido={pedido} onEdit={handleEditPedido} />
           ))}
         </SimpleGrid>
       )}
@@ -311,10 +270,10 @@ export default function PedidosPage() {
           setOpened(false);
           resetForm();
         }}
-        title="Nuevo pedido"
+        title={editingPedido ? `Editar pedido #${editingPedido.id}` : "Nuevo pedido"}
         onSubmit={handleSubmit}
-        submitLabel="Guardar pedido"
-        loading={loading.createPedido}
+        submitLabel={editingPedido ? "Guardar cambios" : "Guardar pedido"}
+        loading={editingPedido ? loading.editPedido : loading.createPedido}
         size={isMobile ? "100%" : "xl"}
       >
         <Stack gap="lg">
@@ -324,189 +283,22 @@ export default function PedidosPage() {
             </Alert>
           ) : null}
 
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Nombre y apellido del cliente"
-                name="cliente_nombre"
-                value={form.cliente_nombre}
-                onChange={(event) => {
-                  handleChange(event);
-                  setFormError("");
-                }}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Telefono / WhatsApp"
-                name="telefono"
-                value={form.telefono}
-                onChange={(event) => {
-                  handleChange(event);
-                  setFormError("");
-                }}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <TextInput
-                label="Fecha del evento"
-                type="date"
-                name="fecha_evento"
-                value={form.fecha_evento}
-                onChange={(event) => {
-                  handleChange(event);
-                  setFormError("");
-                }}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <Select
-                label="Es envio"
-                data={envioOptions}
-                value={form.es_envio}
-                onChange={(value) => {
-                  setForm((prev) => ({ ...prev, es_envio: value || "no" }));
-                  setFormError("");
-                }}
-                allowDeselect={false}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <Select
-                label="Estado del pedido"
-                data={pedidoStatusOptions}
-                value={form.estado}
-                onChange={(value) => {
-                  setForm((prev) => ({ ...prev, estado: value || "en_curso" }));
-                  setFormError("");
-                }}
-                allowDeselect={false}
-                required
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Stack gap="sm">
-            <Group justify="space-between" align="center">
-              <div>
-                <Text fw={700}>Productos del pedido</Text>
-                <Text c="dimmed" fz="sm">
-                  Cargá cada item con cantidad y precio unitario.
-                </Text>
-              </div>
-              <Button
-                type="button"
-                variant="light"
-                color="brand"
-                leftSection={<IconPlus size={16} />}
-                onClick={addItem}
-                fullWidth={isMobile}
-              >
-                Agregar producto
-              </Button>
-            </Group>
-
-            <Stack gap="md">
-              {form.items.map((item, index) => {
-                const subtotal = Number(item.cantidad || 0) * Number(item.precio_unitario || 0);
-
-                return (
-                  <Card key={`item-${index}`} p="md" bg="#f8fbfc">
-                    <Grid align="flex-end">
-                      <Grid.Col span={{ base: 12, md: 5 }}>
-                        <Select
-                          label={`Producto ${index + 1}`}
-                          data={productOptions}
-                          value={item.producto_nombre}
-                          onChange={(value) => {
-                            updateItem(index, "producto_nombre", value || "");
-                            setFormError("");
-                          }}
-                          placeholder="Seleccioná un producto"
-                          searchable
-                          nothingFoundMessage="No hay coincidencias"
-                          required
-                        />
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 6, md: 2 }}>
-                        <NumberInput
-                          label="Cantidad"
-                          min={1}
-                          value={item.cantidad}
-                          onChange={(value) => {
-                            updateItem(index, "cantidad", Number(value || 0));
-                            setFormError("");
-                          }}
-                          required
-                        />
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 6, md: 2 }}>
-                        <NumberInput
-                          label="Precio unitario"
-                          min={0}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          decimalScale={0}
-                          value={item.precio_unitario}
-                          onChange={(value) => {
-                            updateItem(index, "precio_unitario", Number(value || 0));
-                            setFormError("");
-                          }}
-                          required
-                        />
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 9, md: 2 }}>
-                        <Stack gap={2}>
-                          <Text c="dimmed" fz="xs" fw={700} tt="uppercase">
-                            Subtotal
-                          </Text>
-                          <Text fw={700}>{formatCurrency(subtotal)}</Text>
-                        </Stack>
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 3, md: 1 }}>
-                        <ActionIcon
-                          type="button"
-                          color="red"
-                          variant="light"
-                          size="lg"
-                          onClick={() => removeItem(index)}
-                          disabled={form.items.length === 1}
-                        >
-                          <IconTrash size={16} />
-                        </ActionIcon>
-                      </Grid.Col>
-                    </Grid>
-                  </Card>
-                );
-              })}
-            </Stack>
-          </Stack>
-
-          <Card p="md" bg="#eef5f7">
-            <Group justify="space-between" wrap="wrap" gap="md">
-              <Stack gap={2}>
-                <Text c="dimmed" fz="xs" fw={700} tt="uppercase">
-                  Estado seleccionado
-                </Text>
-                <Text fw={700}>{getPedidoStatusLabel(form.estado)}</Text>
-              </Stack>
-              <Stack gap={2} align={isMobile ? "flex-start" : "flex-end"}>
-                <Text c="dimmed" fz="xs" fw={700} tt="uppercase">
-                  Total del pedido
-                </Text>
-                <Text fw={700} fz="xl">
-                  {formatCurrency(totalPedido)}
-                </Text>
-              </Stack>
-            </Group>
-          </Card>
+          <PedidoFormFields
+            form={form}
+            setForm={setForm}
+            setFormError={setFormError}
+            isMobile={isMobile}
+          />
         </Stack>
       </ModalForm>
 
-      <FloatingActionButton label="Cargar pedido" onClick={() => setOpened(true)} />
+      <FloatingActionButton
+        label="Cargar pedido"
+        onClick={() => {
+          resetForm();
+          setOpened(true);
+        }}
+      />
     </Stack>
   );
 }

@@ -161,6 +161,56 @@ export async function createPedido(payload) {
   return getPedidoById(pedidoRecord.id);
 }
 
+export async function updatePedido(id, payload) {
+  assertSupabaseEnv();
+
+  const pedidoActual = await getPedidoById(id);
+
+  if (!pedidoActual) {
+    throw new Error("No se encontró el pedido a editar.");
+  }
+
+  if (pedidoActual.estado === "entregado") {
+    throw new Error("No se puede editar un pedido entregado.");
+  }
+
+  const normalized = normalizePedidoPayload(payload);
+
+  const { error: pedidoError } = await supabase
+    .from("pedidos")
+    .update(normalized.pedido)
+    .eq("id", id);
+
+  if (pedidoError) {
+    console.error(pedidoError);
+    throw pedidoError;
+  }
+
+  const { error: deleteItemsError } = await supabase
+    .from("pedido_items")
+    .delete()
+    .eq("pedido_id", id);
+
+  if (deleteItemsError) {
+    console.error(deleteItemsError);
+    throw deleteItemsError;
+  }
+
+  const itemsPayload = normalized.items.map((item) => ({
+    pedido_id: id,
+    ...item,
+  }));
+
+  const { error: itemsError } = await supabase.from("pedido_items").insert(itemsPayload);
+
+  if (itemsError) {
+    console.error(itemsError);
+    throw itemsError;
+  }
+
+  return getPedidoById(id);
+}
+
 export async function updatePedidoEstado(id, estado) {
   assertSupabaseEnv();
 

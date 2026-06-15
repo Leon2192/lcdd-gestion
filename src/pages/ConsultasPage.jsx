@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconBrandWhatsapp, IconInfoCircle } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconInfoCircle, IconPencil } from "@tabler/icons-react";
 import DataTable from "../components/DataTable";
 import FloatingActionButton from "../components/FloatingActionButton";
 import ModalForm from "../components/ModalForm";
@@ -34,8 +34,9 @@ const initialForm = {
 
 export default function ConsultasPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const { consultas, loading, errors, createConsulta } = useDashboard();
+  const { consultas, loading, errors, createConsulta, updateConsulta } = useDashboard();
   const [opened, setOpened] = useState(false);
+  const [editingConsulta, setEditingConsulta] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [formError, setFormError] = useState("");
   const [filters, setFilters] = useState({
@@ -86,6 +87,7 @@ export default function ConsultasPage() {
 
   function resetForm() {
     setForm(initialForm);
+    setEditingConsulta(null);
     setFormError("");
   }
 
@@ -94,6 +96,19 @@ export default function ConsultasPage() {
       dateRange: [null, null],
       articulo: "",
     });
+  }
+
+  function handleEditConsulta(consulta) {
+    setEditingConsulta(consulta);
+    setForm({
+      fecha: consulta.fecha || "",
+      nombre: consulta.nombre || "",
+      articulo: consulta.articulo || "",
+      telefono: consulta.telefono || "",
+      observaciones: consulta.observaciones || "",
+    });
+    setFormError("");
+    setOpened(true);
   }
 
   async function handleSubmit(event) {
@@ -120,7 +135,11 @@ export default function ConsultasPage() {
     }
 
     try {
-      await createConsulta(form);
+      if (editingConsulta) {
+        await updateConsulta(editingConsulta.id, form);
+      } else {
+        await createConsulta(form);
+      }
       resetForm();
       setOpened(false);
     } catch (error) {
@@ -237,22 +256,37 @@ export default function ConsultasPage() {
                     </Group>
                     <Text fz="sm">{consulta.telefono}</Text>
                     {phone ? (
-                      <Button
-                        component="a"
-                        href={`https://wa.me/${phone}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        variant="light"
-                        color="green"
-                        fullWidth
-                        leftSection={<IconBrandWhatsapp size={16} />}
-                      >
-                        Abrir WhatsApp
-                      </Button>
+                      <Stack gap="xs">
+                        <Button
+                          component="a"
+                          href={`https://wa.me/${phone}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          variant="light"
+                          color="green"
+                          fullWidth
+                          leftSection={<IconBrandWhatsapp size={16} />}
+                        >
+                          Abrir WhatsApp
+                        </Button>
+                        <Button
+                          variant="default"
+                          fullWidth
+                          leftSection={<IconPencil size={16} />}
+                          onClick={() => handleEditConsulta(consulta)}
+                        >
+                          Editar consulta
+                        </Button>
+                      </Stack>
                     ) : (
-                      <Text c="dimmed" fz="sm">
-                        Sin numero valido
-                      </Text>
+                      <Button
+                        variant="default"
+                        fullWidth
+                        leftSection={<IconPencil size={16} />}
+                        onClick={() => handleEditConsulta(consulta)}
+                      >
+                        Editar consulta
+                      </Button>
                     )}
                   </Stack>
                 </Card>
@@ -296,11 +330,20 @@ export default function ConsultasPage() {
                       >
                         Abrir WhatsApp
                       </Button>
-                    ) : (
+                    ) : null}
+                    <Button
+                      variant="default"
+                      size="xs"
+                      leftSection={<IconPencil size={16} />}
+                      onClick={() => handleEditConsulta(consulta)}
+                    >
+                      Editar
+                    </Button>
+                    {!phone ? (
                       <Text c="dimmed" fz="sm">
                         Sin numero valido
                       </Text>
-                    )}
+                    ) : null}
                   </Group>
                 </Table.Td>
               </Table.Tr>
@@ -315,10 +358,10 @@ export default function ConsultasPage() {
           setOpened(false);
           resetForm();
         }}
-        title="Nueva consulta"
+        title={editingConsulta ? `Editar consulta #${editingConsulta.id}` : "Nueva consulta"}
         onSubmit={handleSubmit}
-        submitLabel="Guardar consulta"
-        loading={loading.createConsulta}
+        submitLabel={editingConsulta ? "Guardar cambios" : "Guardar consulta"}
+        loading={editingConsulta ? loading.updateConsulta : loading.createConsulta}
       >
         <Stack gap="md">
           {formError ? (
@@ -388,7 +431,10 @@ export default function ConsultasPage() {
 
       <FloatingActionButton
         label="Cargar consulta"
-        onClick={() => setOpened(true)}
+        onClick={() => {
+          resetForm();
+          setOpened(true);
+        }}
       />
     </Stack>
   );

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Badge,
@@ -13,8 +13,10 @@ import {
   Title,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconArrowLeft, IconBrandWhatsapp, IconInfoCircle } from "@tabler/icons-react";
+import { IconArrowLeft, IconBrandWhatsapp, IconInfoCircle, IconPencil } from "@tabler/icons-react";
 import { Link, useParams } from "react-router-dom";
+import ModalForm from "../components/ModalForm";
+import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
 import { usePedidos } from "../hooks/usePedidos";
 import {
@@ -23,6 +25,7 @@ import {
   formatYesNo,
   normalizePhone,
 } from "../lib/formatters";
+import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 import {
   getNextPedidoStatusAction,
   getPedidoStatusLabel,
@@ -32,7 +35,10 @@ import {
 export default function PedidoDetailPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { id } = useParams();
-  const { selectedPedido, fetchPedidoById, updatePedidoEstado, loading, error } = usePedidos();
+  const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, loading, error } = usePedidos();
+  const [opened, setOpened] = useState(false);
+  const [form, setForm] = useState(initialPedidoForm);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     if (!id) {
@@ -75,6 +81,76 @@ export default function PedidoDetailPage() {
   );
   const nextAction = getNextPedidoStatusAction(selectedPedido.estado);
 
+  function handleOpenEdit() {
+    if (selectedPedido.estado === "entregado") {
+      return;
+    }
+
+    setForm(mapPedidoToForm(selectedPedido));
+    setFormError("");
+    setOpened(true);
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (!form.cliente_nombre.trim()) {
+      setFormError("El nombre del cliente es obligatorio.");
+      return;
+    }
+
+    if (!form.telefono.trim()) {
+      setFormError("El teléfono es obligatorio.");
+      return;
+    }
+
+    if (!form.fecha_evento) {
+      setFormError("La fecha del evento es obligatoria.");
+      return;
+    }
+
+    if (!form.estado) {
+      setFormError("El estado es obligatorio.");
+      return;
+    }
+
+    if (!form.items.length) {
+      setFormError("Debés cargar al menos 1 producto.");
+      return;
+    }
+
+    const hasInvalidItem = form.items.some(
+      (item) =>
+        !item.producto_nombre ||
+        Number(item.cantidad || 0) <= 0 ||
+        Number(item.precio_unitario || 0) < 0
+    );
+
+    if (hasInvalidItem) {
+      setFormError(
+        "Cada producto debe tener nombre, cantidad mayor a 0 y precio unitario mayor o igual a 0."
+      );
+      return;
+    }
+
+    try {
+      await editPedido(selectedPedido.id, {
+        ...form,
+        es_envio: form.es_envio === "si",
+        items: form.items.map((item) => ({
+          ...item,
+          cantidad: Number(item.cantidad || 0),
+          precio_unitario: Number(item.precio_unitario || 0),
+          subtotal: Number(item.cantidad || 0) * Number(item.precio_unitario || 0),
+        })),
+      });
+      await fetchPedidoById(selectedPedido.id);
+      setOpened(false);
+    } catch (submitError) {
+      setFormError(submitError.message);
+    }
+  }
+
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="flex-start" gap="md">
@@ -96,6 +172,15 @@ export default function PedidoDetailPage() {
           <Badge color={pedidoStatusColors[selectedPedido.estado]} variant="light" size="lg">
             {getPedidoStatusLabel(selectedPedido.estado)}
           </Badge>
+          {selectedPedido.estado !== "entregado" ? (
+            <Button
+              variant="default"
+              leftSection={<IconPencil size={16} />}
+              onClick={handleOpenEdit}
+            >
+              Editar pedido
+            </Button>
+          ) : null}
           {phone ? (
             <Button
               component="a"
@@ -265,6 +350,34 @@ export default function PedidoDetailPage() {
           </Card>
         </Grid.Col>
       </Grid>
+
+      <ModalForm
+        opened={opened}
+        onClose={() => {
+          setOpened(false);
+          setForm(mapPedidoToForm(selectedPedido));
+          setFormError("");
+        }}
+        title={`Editar pedido #${selectedPedido.id}`}
+        onSubmit={handleSubmit}
+        submitLabel="Guardar cambios"
+        loading={loading.editPedido}
+        size={isMobile ? "100%" : "xl"}
+      >
+        <Stack gap="lg">
+          {formError ? (
+            <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+              {formError}
+            </Alert>
+          ) : null}
+          <PedidoFormFields
+            form={form}
+            setForm={setForm}
+            setFormError={setFormError}
+            isMobile={isMobile}
+          />
+        </Stack>
+      </ModalForm>
     </Stack>
   );
 }

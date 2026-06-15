@@ -2,6 +2,7 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import {
   getConsultas,
   createConsulta as createConsultaRequest,
+  updateConsulta as updateConsultaRequest,
 } from "../services/consultasService";
 import {
   getObjetivos,
@@ -15,6 +16,7 @@ const initialLoading = {
   consultas: false,
   objetivos: false,
   createConsulta: false,
+  updateConsulta: false,
   createObjetivo: false,
   updateObjetivo: false,
 };
@@ -23,6 +25,7 @@ const initialErrors = {
   consultas: null,
   objetivos: null,
   createConsulta: null,
+  updateConsulta: null,
   createObjetivo: null,
   updateObjetivo: null,
 };
@@ -81,6 +84,23 @@ export function DashboardProvider({ children }) {
       throw new Error(message);
     } finally {
       setLoading((prev) => ({ ...prev, createConsulta: false }));
+    }
+  }
+
+  async function updateConsulta(id, payload) {
+    setLoading((prev) => ({ ...prev, updateConsulta: true }));
+    setErrors((prev) => ({ ...prev, updateConsulta: null }));
+
+    try {
+      const updated = await updateConsultaRequest(id, payload);
+      await loadConsultas();
+      return updated;
+    } catch (error) {
+      const message = error.message || "No se pudo actualizar la consulta.";
+      setErrors((prev) => ({ ...prev, updateConsulta: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, updateConsulta: false }));
     }
   }
 
@@ -144,6 +164,7 @@ export function DashboardProvider({ children }) {
       loadConsultas,
       loadObjetivos,
       createConsulta,
+      updateConsulta,
       createObjetivo,
       changeObjetivoEstado,
     }),

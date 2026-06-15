@@ -3,6 +3,7 @@ import {
   createPedido as createPedidoRequest,
   getPedidoById,
   getPedidos,
+  updatePedido as updatePedidoRequest,
   updatePedidoEstado,
 } from "../services/pedidosService";
 
@@ -12,6 +13,7 @@ const initialLoading = {
   pedidos: false,
   pedidoDetail: false,
   createPedido: false,
+  editPedido: false,
   updatePedido: false,
 };
 
@@ -19,6 +21,7 @@ const initialErrors = {
   pedidos: null,
   pedidoDetail: null,
   createPedido: null,
+  editPedido: null,
   updatePedido: null,
 };
 
@@ -84,6 +87,28 @@ export function PedidosProvider({ children }) {
     }
   }
 
+  async function editPedido(id, payload) {
+    setLoading((prev) => ({ ...prev, editPedido: true }));
+    setError((prev) => ({ ...prev, editPedido: null }));
+
+    try {
+      const updated = await updatePedidoRequest(id, payload);
+      await fetchPedidos();
+
+      if (selectedPedido?.id === Number(id)) {
+        setSelectedPedido(updated);
+      }
+
+      return updated;
+    } catch (updateError) {
+      const message = updateError.message || "No se pudo editar el pedido.";
+      setError((prev) => ({ ...prev, editPedido: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, editPedido: false }));
+    }
+  }
+
   async function changePedidoEstado(id, estado) {
     setLoading((prev) => ({ ...prev, updatePedido: true }));
     setError((prev) => ({ ...prev, updatePedido: null }));
@@ -117,6 +142,7 @@ export function PedidosProvider({ children }) {
       fetchPedidos,
       fetchPedidoById,
       createPedido,
+      editPedido,
       updatePedidoEstado: changePedidoEstado,
     }),
     [pedidos, selectedPedido, loading, error]

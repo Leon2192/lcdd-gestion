@@ -4,6 +4,7 @@ import {
   IconBrandWhatsapp,
   IconCalendarEvent,
   IconPackage,
+  IconPencil,
   IconProgressCheck,
   IconTruckDelivery,
 } from "@tabler/icons-react";
@@ -16,7 +17,7 @@ import {
   pedidoStatusColors,
 } from "../lib/pedidos";
 
-export default function PedidoCard({ pedido }) {
+export default function PedidoCard({ pedido, onEdit }) {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { updatePedidoEstado, loading } = usePedidos();
   const phone = normalizePhone(pedido.telefono);
@@ -95,6 +96,17 @@ export default function PedidoCard({ pedido }) {
                 leftSection={<IconBrandWhatsapp size={15} />}
               >
                 WhatsApp
+              </Button>
+            ) : null}
+            {pedido.estado !== "entregado" ? (
+              <Button
+                variant="default"
+                size="xs"
+                fullWidth={isMobile}
+                leftSection={<IconPencil size={15} />}
+                onClick={() => onEdit?.(pedido)}
+              >
+                Editar
               </Button>
             ) : null}
             <Button

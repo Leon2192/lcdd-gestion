@@ -61,3 +61,22 @@ export async function createConsulta(data) {
 
   return createdConsulta;
 }
+
+export async function updateConsulta(id, data) {
+  assertSupabaseEnv();
+
+  const payload = normalizeConsultaPayload(data);
+  const { data: updatedConsulta, error } = await supabase
+    .from("consultas")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return updatedConsulta;
+}
