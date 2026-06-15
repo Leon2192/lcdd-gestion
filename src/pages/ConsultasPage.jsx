@@ -429,13 +429,15 @@ export default function ConsultasPage() {
         </Stack>
       </ModalForm>
 
-      <FloatingActionButton
-        label="Cargar consulta"
-        onClick={() => {
-          resetForm();
-          setOpened(true);
-        }}
-      />
+      {!opened ? (
+        <FloatingActionButton
+          label="Cargar consulta"
+          onClick={() => {
+            resetForm();
+            setOpened(true);
+          }}
+        />
+      ) : null}
     </Stack>
   );
 }

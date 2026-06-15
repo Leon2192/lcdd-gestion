@@ -292,13 +292,15 @@ export default function PedidosPage() {
         </Stack>
       </ModalForm>
 
-      <FloatingActionButton
-        label="Cargar pedido"
-        onClick={() => {
-          resetForm();
-          setOpened(true);
-        }}
-      />
+      {!opened ? (
+        <FloatingActionButton
+          label="Cargar pedido"
+          onClick={() => {
+            resetForm();
+            setOpened(true);
+          }}
+        />
+      ) : null}
     </Stack>
   );
 }
