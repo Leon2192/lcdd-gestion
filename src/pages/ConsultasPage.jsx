@@ -58,6 +58,7 @@ const initialForm = {
   fecha: "",
   nombre: "",
   articulo: "",
+  tipo_evento: "",
   telefono: "",
   observaciones: "",
   fecha_recontacto: "",
@@ -242,6 +243,7 @@ export default function ConsultasPage() {
       fecha: consulta.fecha || "",
       nombre: consulta.nombre || "",
       articulo: consulta.articulo || "",
+      tipo_evento: consulta.tipo_evento || "",
       telefono: consulta.telefono || "",
       observaciones: consulta.observaciones || "",
       fecha_recontacto: consulta.fecha_recontacto || "",
@@ -718,6 +720,16 @@ export default function ConsultasPage() {
             searchable
             nothingFoundMessage="No hay coincidencias"
             required
+          />
+          <TextInput
+            label="Tipo de evento"
+            name="tipo_evento"
+            value={form.tipo_evento}
+            onChange={(event) => {
+              handleChange(event);
+              setFormError("");
+            }}
+            placeholder="Cumple, casamiento, bautismo..."
           />
           <TextInput
             label="Teléfono / WhatsApp"

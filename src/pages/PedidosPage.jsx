@@ -151,11 +151,6 @@ export default function PedidosPage() {
       return;
     }
 
-    if (form.es_envio === "si" && !form.direccion_envio.trim()) {
-      setFormError("La dirección de envío es obligatoria cuando el pedido requiere envío.");
-      return;
-    }
-
     if (!form.items.length) {
       setFormError("Debés cargar al menos 1 producto.");
       return;

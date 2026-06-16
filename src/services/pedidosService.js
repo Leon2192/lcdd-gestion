@@ -61,10 +61,6 @@ function normalizePedidoPayload(payload) {
   const pagoCompletado = Boolean(payload.pago_completado);
   const anticipoPagado = pagoCompletado ? false : Boolean(payload.anticipo_50_pagado);
 
-  if (Boolean(payload.es_envio) && !payload.direccion_envio?.trim()) {
-    throw new Error("La dirección de envío es obligatoria cuando el pedido requiere envío.");
-  }
-
   const payment = calculatePedidoPayment(total, anticipoPagado, pagoCompletado);
 
   return {

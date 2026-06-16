@@ -1,4 +1,4 @@
-import { ActionIcon, Alert, Button, Card, Grid, Group, NumberInput, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Card, Grid, Group, NumberInput, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { formatCurrency } from "../lib/formatters";
 import { envioOptions, createEmptyPedidoItem } from "../lib/pedidoForm";
@@ -160,11 +160,6 @@ export default function PedidoFormFields({ form, setForm, setFormError, isMobile
       <Card p="md" bg="#f8fbfc">
         <Stack gap="sm">
           <Text fw={700}>Datos de envío</Text>
-          {form.es_envio === "si" ? (
-            <Alert color="brand" variant="light">
-              Este pedido requiere envío. La dirección es obligatoria.
-            </Alert>
-          ) : null}
           <Grid>
             <Grid.Col span={{ base: 12 }}>
               <TextInput
@@ -176,7 +171,6 @@ export default function PedidoFormFields({ form, setForm, setFormError, isMobile
                   setFormError("");
                 }}
                 placeholder="Calle, número, piso, depto"
-                required={form.es_envio === "si"}
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>

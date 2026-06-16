@@ -35,6 +35,7 @@ function normalizeConsultaPayload(data) {
     fecha: data.fecha,
     nombre: data.nombre.trim(),
     articulo: data.articulo.trim(),
+    tipo_evento: data.tipo_evento?.trim() || null,
     telefono: data.telefono.trim(),
     observaciones: data.observaciones?.trim() || null,
     fecha_recontacto: data.fecha_recontacto,
