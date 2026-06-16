@@ -289,16 +289,6 @@ export default function ConsultasPage() {
     });
   }
 
-  function handleSingleOfferTemplateChange(templateId) {
-    const template = OFFER_TEMPLATES.find((item) => item.id === templateId) || OFFER_TEMPLATES[0];
-
-    setSingleOffer((prev) => ({
-      ...prev,
-      templateId: template.id,
-      message: prev.consulta ? renderOfferMessage(template.message, prev.consulta) : template.message,
-    }));
-  }
-
   function resetBulkOffer() {
     setBulkOffer(initialBulkOfferState);
   }
@@ -712,18 +702,16 @@ export default function ConsultasPage() {
           {singleOffer.consulta ? (
             <>
               <Text c="dimmed" fz="sm">
-                Elegí una oferta, ajustá el mensaje y abrí WhatsApp con el texto listo.
+                Revisá el mensaje, ajustalo si hace falta y abrí WhatsApp con el texto listo.
               </Text>
-              <Select
-                label="Oferta predefinida"
-                data={OFFER_TEMPLATES.map((template) => ({
-                  value: template.id,
-                  label: template.label,
-                }))}
-                value={singleOffer.templateId}
-                onChange={(value) => handleSingleOfferTemplateChange(value || OFFER_TEMPLATES[0].id)}
-                allowDeselect={false}
-              />
+              <Stack gap={6}>
+                <Text fw={600} fz="sm">
+                  Este cliente consultó por
+                </Text>
+                <Badge color="brand" variant="light" size="lg" w="fit-content">
+                  {singleOffer.consulta.articulo}
+                </Badge>
+              </Stack>
               <Textarea
                 label="Vista previa del mensaje"
                 value={singleOffer.message}
