@@ -436,13 +436,13 @@ export default function ConsultasPage() {
         </Stack>
       </Group>
 
-      <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
-        <StatCard title="Total leads" value={stats.total} subtitle="Leads según filtros activos." />
-        <StatCard title="Nuevos" value={stats.nuevos} subtitle="Ingresos pendientes de primer contacto." />
-        <StatCard title="Para recontactar hoy" value={stats.recontactarHoy} subtitle="Seguimiento prioritario del día." />
-        <StatCard title="Recontactos vencidos" value={stats.vencidos} subtitle="Leads activos con seguimiento atrasado." />
-        <StatCard title="Convertidos" value={stats.convertidos} subtitle="Leads que avanzaron a venta." />
-        <StatCard title="Rechazados" value={stats.rechazados} subtitle="Leads descartados por el equipo." />
+      <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing={{ base: "md", md: "lg" }}>
+        <StatCard compact title="Total leads" value={stats.total} subtitle="Leads según filtros activos." />
+        <StatCard compact title="Nuevos" value={stats.nuevos} subtitle="Ingresos pendientes de primer contacto." />
+        <StatCard compact title="Para recontactar hoy" value={stats.recontactarHoy} subtitle="Seguimiento prioritario del día." />
+        <StatCard compact title="Recontactos vencidos" value={stats.vencidos} subtitle="Leads activos con seguimiento atrasado." />
+        <StatCard compact title="Convertidos" value={stats.convertidos} subtitle="Leads que avanzaron a venta." />
+        <StatCard compact title="Rechazados" value={stats.rechazados} subtitle="Leads descartados por el equipo." />
       </SimpleGrid>
 
       <Card p="lg" bg="rgba(250, 252, 252, 0.96)">

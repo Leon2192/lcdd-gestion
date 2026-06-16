@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Button,
   Card,
   Grid,
   Group,
+  Pagination,
   Select,
   SimpleGrid,
   Stack,
@@ -25,6 +26,8 @@ import { formatCurrency, getEndOfDay, getStartOfDay } from "../lib/formatters";
 import { pedidoStatusOptions } from "../lib/pedidos";
 import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 
+const PEDIDOS_PER_PAGE = 6;
+
 export default function PedidosPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { pedidos, loading, error, createPedido, editPedido } = usePedidos();
@@ -37,6 +40,7 @@ export default function PedidosPage() {
     dateRange: [null, null],
     estado: "",
   });
+  const [page, setPage] = useState(1);
 
   const filteredPedidos = useMemo(() => {
     return pedidos.filter((pedido) => {
@@ -77,6 +81,23 @@ export default function PedidosPage() {
 
     return { total, enCurso, enviados, entregados, totalGenerado };
   }, [filteredPedidos]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPedidos.length / PEDIDOS_PER_PAGE));
+
+  const paginatedPedidos = useMemo(() => {
+    const startIndex = (page - 1) * PEDIDOS_PER_PAGE;
+    return filteredPedidos.slice(startIndex, startIndex + PEDIDOS_PER_PAGE);
+  }, [filteredPedidos, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters.dateRange, filters.estado]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   function resetForm() {
     setForm(initialPedidoForm);
@@ -252,21 +273,22 @@ export default function PedidosPage() {
         </Alert>
       ) : null}
 
-      <SimpleGrid cols={{ base: 1, md: 2, xl: 5 }} spacing="lg">
+      <SimpleGrid cols={{ base: 1, md: 2, xl: 5 }} spacing={{ base: "md", md: "lg" }}>
         <div>
-          <StatCard title="Total de pedidos" value={stats.total} subtitle="Pedidos registrados" />
+          <StatCard compact title="Total de pedidos" value={stats.total} subtitle="Pedidos registrados" />
         </div>
         <div>
-          <StatCard title="Pedidos en curso" value={stats.enCurso} subtitle="Producción activa" />
+          <StatCard compact title="Pedidos en curso" value={stats.enCurso} subtitle="Producción activa" />
         </div>
         <div>
-          <StatCard title="Pedidos enviados" value={stats.enviados} subtitle="En camino" />
+          <StatCard compact title="Pedidos enviados" value={stats.enviados} subtitle="En camino" />
         </div>
         <div>
-          <StatCard title="Pedidos entregados" value={stats.entregados} subtitle="Cerrados" />
+          <StatCard compact title="Pedidos entregados" value={stats.entregados} subtitle="Cerrados" />
         </div>
         <div>
           <StatCard
+            compact
             title="Total generado"
             value={formatCurrency(stats.totalGenerado)}
             subtitle="Importe acumulado según filtros activos"
@@ -281,8 +303,8 @@ export default function PedidosPage() {
           </Text>
         </Card>
       ) : (
-        <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
-          {filteredPedidos.map((pedido) => (
+        <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing={{ base: "md", md: "lg" }}>
+          {paginatedPedidos.map((pedido) => (
             <PedidoCard key={pedido.id} pedido={pedido} onEdit={handleEditPedido} />
           ))}
         </SimpleGrid>
@@ -294,6 +316,31 @@ export default function PedidosPage() {
             No hay pedidos para los filtros seleccionados.
           </Text>
         </Card>
+      ) : null}
+
+      {!loading.pedidos ? (
+        <Group justify="center" align="center" wrap="wrap" gap="md">
+          <Pagination
+            value={page}
+            onChange={setPage}
+            total={totalPages}
+            color="brand"
+            withEdges
+            siblings={isMobile ? 0 : 1}
+            boundaries={1}
+            getItemProps={(pageNumber) => {
+              if (pageNumber === "previous") {
+                return { "aria-label": "Anterior" };
+              }
+
+              if (pageNumber === "next") {
+                return { "aria-label": "Siguiente" };
+              }
+
+              return {};
+            }}
+          />
+        </Group>
       ) : null}
 
       <ModalForm
