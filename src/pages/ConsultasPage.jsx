@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Badge,
@@ -6,6 +6,7 @@ import {
   Card,
   Grid,
   Group,
+  Pagination,
   Select,
   SimpleGrid,
   Stack,
@@ -76,6 +77,8 @@ const initialBulkOfferState = {
   articulo: "",
 };
 
+const CONSULTAS_PER_PAGE = 10;
+
 export default function ConsultasPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const {
@@ -92,6 +95,7 @@ export default function ConsultasPage() {
   const [formError, setFormError] = useState("");
   const [singleOffer, setSingleOffer] = useState(initialSingleOfferState);
   const [bulkOffer, setBulkOffer] = useState(initialBulkOfferState);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
     search: "",
     estado: "",
@@ -160,6 +164,23 @@ export default function ConsultasPage() {
       rechazados: filteredConsultas.filter((consulta) => consulta.estado === "rechazado").length,
     };
   }, [filteredConsultas]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredConsultas.length / CONSULTAS_PER_PAGE));
+
+  const paginatedConsultas = useMemo(() => {
+    const startIndex = (page - 1) * CONSULTAS_PER_PAGE;
+    return filteredConsultas.slice(startIndex, startIndex + CONSULTAS_PER_PAGE);
+  }, [filteredConsultas, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters.search, filters.estado, filters.quickFilter, filters.dateRange]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const bulkAudienceConsultas = useMemo(() => {
     if (bulkOffer.audience === "filtrados_actualmente") {
@@ -506,8 +527,8 @@ export default function ConsultasPage() {
                 Cargando leads...
               </Text>
             </Card>
-          ) : filteredConsultas.length ? (
-            filteredConsultas.map((consulta) => (
+          ) : paginatedConsultas.length ? (
+            paginatedConsultas.map((consulta) => (
               <Card key={consulta.id} p="md" bg="rgba(250, 252, 252, 0.96)">
                 <Stack gap="sm">
                   <Group justify="space-between" align="flex-start" wrap="wrap">
@@ -551,7 +572,7 @@ export default function ConsultasPage() {
             { key: "observaciones", label: "Observaciones" },
             { key: "acciones", label: "Acciones" },
           ]}
-          rows={filteredConsultas}
+          rows={paginatedConsultas}
           loading={loading.consultas}
           tableMinWidth={1320}
           emptyMessage="No hay leads para los filtros seleccionados."
@@ -577,6 +598,31 @@ export default function ConsultasPage() {
           )}
         />
       )}
+
+      {!loading.consultas ? (
+        <Group justify="center" align="center" wrap="wrap" gap="md">
+          <Pagination
+            value={page}
+            onChange={setPage}
+            total={totalPages}
+            color="brand"
+            withEdges
+            siblings={isMobile ? 0 : 1}
+            boundaries={1}
+            getItemProps={(pageNumber) => {
+              if (pageNumber === "previous") {
+                return { "aria-label": "Anterior" };
+              }
+
+              if (pageNumber === "next") {
+                return { "aria-label": "Siguiente" };
+              }
+
+              return {};
+            }}
+          />
+        </Group>
+      ) : null}
 
       <ModalForm
         opened={opened}
