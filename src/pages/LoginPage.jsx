@@ -16,9 +16,11 @@ import { IconAlertCircle, IconLogin2 } from "@tabler/icons-react";
 import { Navigate, useNavigate } from "react-router-dom";
 import logoLcdd from "../assets/logo-lcdd.png";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 
 export default function LoginPage() {
   const { session, loading, login } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,8 +54,10 @@ export default function LoginPage() {
     try {
       setSubmitting(true);
       await login(email.trim(), password);
+      toast.success("Sesión iniciada", "Bienvenido al dashboard de LCDD.");
       navigate("/consultas", { replace: true });
     } catch (loginError) {
+      toast.error("No se pudo iniciar sesión", loginError.message || "Revisá tus credenciales.");
       setError(loginError.message || "No se pudo iniciar sesión.");
     } finally {
       setSubmitting(false);

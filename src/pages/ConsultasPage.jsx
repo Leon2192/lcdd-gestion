@@ -31,6 +31,7 @@ import FloatingActionButton from "../components/FloatingActionButton";
 import ModalForm from "../components/ModalForm";
 import StatCard from "../components/StatCard";
 import { useDashboard } from "../hooks/useDashboard";
+import { useToast } from "../hooks/useToast";
 import {
   consultaQuickFilterOptions,
   consultaStatusColors,
@@ -89,6 +90,7 @@ export default function ConsultasPage() {
     updateConsulta,
     updateConsultaEstado,
   } = useDashboard();
+  const toast = useToast();
   const [opened, setOpened] = useState(false);
   const [editingConsulta, setEditingConsulta] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -283,8 +285,10 @@ export default function ConsultasPage() {
 
       if (editingConsulta) {
         await updateConsulta(editingConsulta.id, payload);
+        toast.success("Lead actualizado", "Los datos del lead se guardaron correctamente.");
       } else {
         await createConsulta(payload);
+        toast.success("Lead creado", "La nueva consulta se cargó correctamente.");
       }
 
       resetForm();
@@ -297,6 +301,10 @@ export default function ConsultasPage() {
   async function handleStatusChange(consulta, estado) {
     try {
       await updateConsultaEstado(consulta.id, estado);
+      toast.success(
+        "Estado actualizado",
+        `${consulta.nombre} ahora figura como ${getConsultaStatusLabel(estado)}.`
+      );
     } catch {}
   }
 

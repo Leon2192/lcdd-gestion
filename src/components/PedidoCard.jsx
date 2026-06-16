@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import { usePedidos } from "../hooks/usePedidos";
+import { useToast } from "../hooks/useToast";
 import { formatCurrency, formatDate, formatYesNo, normalizePhone } from "../lib/formatters";
 import {
   getCanalVentaLabel,
@@ -24,6 +25,7 @@ import {
 export default function PedidoCard({ pedido, onEdit }) {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { updatePedidoEstado, deletePedido, loading } = usePedidos();
+  const toast = useToast();
   const phone = normalizePhone(pedido.telefono);
   const totalProductos = pedido.items.reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
   const nextAction = getNextPedidoStatusAction(pedido.estado);
@@ -103,6 +105,10 @@ export default function PedidoCard({ pedido, onEdit }) {
                 onClick={async () => {
                   try {
                     await updatePedidoEstado(pedido.id, nextAction.value);
+                    toast.success(
+                      "Estado actualizado",
+                      `${pedido.cliente_nombre} quedó como ${getNextPedidoStatusAction(pedido.estado)?.label?.replace("Marcar como ", "")}.`
+                    );
                   } catch {}
                 }}
               >
@@ -153,6 +159,7 @@ export default function PedidoCard({ pedido, onEdit }) {
 
                 try {
                   await deletePedido(pedido.id);
+                  toast.success("Pedido eliminado", `Se eliminó el pedido de ${pedido.cliente_nombre}.`);
                 } catch {}
               }}
             >

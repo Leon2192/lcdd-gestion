@@ -19,6 +19,7 @@ import ModalForm from "../components/ModalForm";
 import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
 import { usePedidos } from "../hooks/usePedidos";
+import { useToast } from "../hooks/useToast";
 import {
   formatCurrency,
   formatDate,
@@ -39,6 +40,7 @@ export default function PedidoDetailPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const { selectedPedido, fetchPedidoById, updatePedidoEstado, editPedido, deletePedido, markPedidoPagoCompletado, loading, error } = usePedidos();
   const [opened, setOpened] = useState(false);
   const [form, setForm] = useState(initialPedidoForm);
@@ -160,6 +162,7 @@ export default function PedidoDetailPage() {
         })),
       });
       await fetchPedidoById(selectedPedido.id);
+      toast.success("Pedido actualizado", "Los cambios del pedido se guardaron correctamente.");
       setOpened(false);
     } catch (submitError) {
       setFormError(submitError.message);
@@ -170,6 +173,7 @@ export default function PedidoDetailPage() {
     try {
       await markPedidoPagoCompletado(selectedPedido.id);
       await fetchPedidoById(selectedPedido.id);
+      toast.success("Pago completado", "El pedido quedó marcado con pago completo.");
     } catch {}
   }
 
@@ -184,6 +188,7 @@ export default function PedidoDetailPage() {
 
     try {
       await deletePedido(selectedPedido.id);
+      toast.success("Pedido eliminado", `Se eliminó el pedido de ${selectedPedido.cliente_nombre}.`);
       navigate("/pedidos", { replace: true });
     } catch {}
   }

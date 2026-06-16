@@ -20,6 +20,7 @@ import PedidoCard from "../components/PedidoCard";
 import PedidoFormFields from "../components/PedidoFormFields";
 import StatCard from "../components/StatCard";
 import { usePedidos } from "../hooks/usePedidos";
+import { useToast } from "../hooks/useToast";
 import { formatCurrency, getEndOfDay, getStartOfDay } from "../lib/formatters";
 import { pedidoStatusOptions } from "../lib/pedidos";
 import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
@@ -27,6 +28,7 @@ import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 export default function PedidosPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { pedidos, loading, error, createPedido, editPedido } = usePedidos();
+  const toast = useToast();
   const [opened, setOpened] = useState(false);
   const [editingPedido, setEditingPedido] = useState(null);
   const [form, setForm] = useState(initialPedidoForm);
@@ -166,8 +168,10 @@ export default function PedidosPage() {
 
       if (editingPedido) {
         await editPedido(editingPedido.id, payload);
+        toast.success("Pedido actualizado", "Los cambios del pedido se guardaron correctamente.");
       } else {
         await createPedido(payload);
+        toast.success("Pedido creado", "El nuevo pedido se registró correctamente.");
       }
 
       resetForm();

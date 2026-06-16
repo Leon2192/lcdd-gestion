@@ -4,19 +4,23 @@ import { IconLogout, IconSparkles } from "@tabler/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 
 export default function Header({ opened, onToggle, title, description }) {
   const isMobile = useMediaQuery("(max-width: 48em)");
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const toast = useToast();
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
     try {
       setLoggingOut(true);
       await logout();
+      toast.info("Sesión cerrada", "Tu sesión se cerró correctamente.");
       navigate("/login", { replace: true });
     } catch {
+      toast.error("No se pudo cerrar sesión", "Intentá nuevamente en unos segundos.");
       setLoggingOut(false);
     }
   }
