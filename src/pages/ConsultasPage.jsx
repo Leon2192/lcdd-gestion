@@ -465,9 +465,10 @@ export default function ConsultasPage() {
                 label="Buscar lead"
                 placeholder="Nombre, teléfono o artículo"
                 value={filters.search}
-                onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, search: event.currentTarget.value }))
-                }
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setFilters((prev) => ({ ...prev, search: value }));
+                }}
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 4 }}>
@@ -769,9 +770,10 @@ export default function ConsultasPage() {
               <Textarea
                 label="Vista previa del mensaje"
                 value={singleOffer.message}
-                onChange={(event) =>
-                  setSingleOffer((prev) => ({ ...prev, message: event.currentTarget.value }))
-                }
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setSingleOffer((prev) => ({ ...prev, message: value }));
+                }}
                 autosize
                 minRows={12}
                 maxRows={18}
@@ -855,9 +857,10 @@ export default function ConsultasPage() {
           <Textarea
             label="Mensaje base"
             value={bulkOffer.message}
-            onChange={(event) =>
-              setBulkOffer((prev) => ({ ...prev, message: event.currentTarget.value }))
-            }
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setBulkOffer((prev) => ({ ...prev, message: value }));
+            }}
             description="Podés usar {nombre} y {articulo} para personalizar el mensaje."
             minRows={7}
           />
