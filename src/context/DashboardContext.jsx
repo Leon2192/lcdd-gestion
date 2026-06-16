@@ -4,6 +4,7 @@ import {
   createConsulta as createConsultaRequest,
   updateConsulta as updateConsultaRequest,
   updateConsultaEstado as updateConsultaEstadoRequest,
+  deleteConsulta as deleteConsultaRequest,
 } from "../services/consultasService";
 import {
   getObjetivos,
@@ -19,6 +20,7 @@ const initialLoading = {
   createConsulta: false,
   updateConsulta: false,
   updateConsultaEstado: false,
+  deleteConsulta: false,
   createObjetivo: false,
   updateObjetivo: false,
 };
@@ -29,6 +31,7 @@ const initialErrors = {
   createConsulta: null,
   updateConsulta: null,
   updateConsultaEstado: null,
+  deleteConsulta: null,
   createObjetivo: null,
   updateObjetivo: null,
 };
@@ -124,6 +127,23 @@ export function DashboardProvider({ children }) {
     }
   }
 
+  async function deleteConsulta(id) {
+    setLoading((prev) => ({ ...prev, deleteConsulta: true }));
+    setErrors((prev) => ({ ...prev, deleteConsulta: null }));
+
+    try {
+      await deleteConsultaRequest(id);
+      await loadConsultas();
+      return true;
+    } catch (error) {
+      const message = error.message || "No se pudo eliminar la consulta.";
+      setErrors((prev) => ({ ...prev, deleteConsulta: message }));
+      throw new Error(message);
+    } finally {
+      setLoading((prev) => ({ ...prev, deleteConsulta: false }));
+    }
+  }
+
   async function createObjetivo(payload) {
     setLoading((prev) => ({ ...prev, createObjetivo: true }));
     setErrors((prev) => ({ ...prev, createObjetivo: null }));
@@ -187,6 +207,7 @@ export function DashboardProvider({ children }) {
       createConsulta,
       updateConsulta,
       updateConsultaEstado,
+      deleteConsulta,
       createObjetivo,
       changeObjetivoEstado,
     }),

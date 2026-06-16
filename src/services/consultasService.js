@@ -117,3 +117,16 @@ export async function updateConsultaEstado(id, estado) {
 
   return updatedConsulta;
 }
+
+export async function deleteConsulta(id) {
+  assertSupabaseEnv();
+
+  const { error } = await supabase.from("consultas").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return true;
+}

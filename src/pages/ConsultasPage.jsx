@@ -25,6 +25,7 @@ import {
   IconPencil,
   IconRosetteDiscountCheck,
   IconSend,
+  IconTrash,
 } from "@tabler/icons-react";
 import DataTable from "../components/DataTable";
 import FloatingActionButton from "../components/FloatingActionButton";
@@ -89,6 +90,7 @@ export default function ConsultasPage() {
     createConsulta,
     updateConsulta,
     updateConsultaEstado,
+    deleteConsulta,
   } = useDashboard();
   const toast = useToast();
   const [opened, setOpened] = useState(false);
@@ -308,6 +310,21 @@ export default function ConsultasPage() {
     } catch {}
   }
 
+  async function handleDeleteConsulta(consulta) {
+    const confirmed = window.confirm(
+      `¿Querés eliminar el lead de ${consulta.nombre}? Esta acción no se puede deshacer.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteConsulta(consulta.id);
+      toast.success("Lead eliminado", `Se eliminó el lead de ${consulta.nombre}.`);
+    } catch {}
+  }
+
   function handleOpenSingleOffer(consulta) {
     const template = OFFER_TEMPLATES[0];
     setSingleOffer({
@@ -410,6 +427,17 @@ export default function ConsultasPage() {
           onClick={() => handleOpenSingleOffer(consulta)}
         >
           Enviar oferta
+        </Button>
+        <Button
+          variant="light"
+          color="red"
+          size="xs"
+          fullWidth={stacked}
+          leftSection={<IconTrash size={16} />}
+          loading={loading.deleteConsulta}
+          onClick={() => handleDeleteConsulta(consulta)}
+        >
+          Eliminar
         </Button>
       </>
     );
@@ -525,6 +553,12 @@ export default function ConsultasPage() {
       {errors.updateConsultaEstado ? (
         <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
           {errors.updateConsultaEstado}
+        </Alert>
+      ) : null}
+
+      {errors.deleteConsulta ? (
+        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+          {errors.deleteConsulta}
         </Alert>
       ) : null}
 
