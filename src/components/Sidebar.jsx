@@ -1,10 +1,5 @@
-import { Card, NavLink, Stack, Text } from "@mantine/core";
-import {
-  IconChecklist,
-  IconMessages,
-  IconPackage,
-  IconTargetArrow,
-} from "@tabler/icons-react";
+import { Card, NavLink, Stack } from "@mantine/core";
+import { IconMessages, IconPackage, IconTargetArrow } from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import logoLcdd from "../assets/logo-lcdd.png";
 
@@ -35,7 +30,7 @@ export default function Sidebar({ onNavigate }) {
   const location = useLocation();
 
   return (
-    <Stack h="100%" justify="space-between">
+    <Stack h="100%" gap="xl">
       <Card padding="lg" bg="rgba(244, 248, 249, 0.86)">
         <img
           src={logoLcdd}
@@ -67,16 +62,6 @@ export default function Sidebar({ onNavigate }) {
           />
         ))}
       </Stack>
-
-      <Card padding="lg" bg="#f4f8f9" visibleFrom="sm">
-        <Stack gap={8}>
-          <IconChecklist size={20} color="#6f8f9b" />
-          <Text fw={700}>Base preparada para escalar</Text>
-          <Text c="dimmed" fz="sm">
-            El MVP ya separa UI, estado global y servicios para sumar autenticación, filtros y KPIs.
-          </Text>
-        </Stack>
-      </Card>
     </Stack>
   );
 }
