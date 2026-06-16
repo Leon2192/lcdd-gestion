@@ -1,3 +1,5 @@
+import { productOptions } from "./productOptions";
+
 export const consultaStatusOptions = [
   { value: "nuevo", label: "Nuevo" },
   { value: "contactado", label: "Contactado" },
@@ -31,18 +33,14 @@ export const offerAudienceOptions = [
 ];
 
 export const OFFER_TEMPLATES = [
-  {
-    id: "promo_vasos",
-    label: "Promo vasos personalizados",
-    message:
-      "Hola {nombre}! Cómo estás? Te escribo de La Casa del Detalle 😊 Hace unos días nos consultaste por {articulo}. Esta semana tenemos una promo especial en vasos personalizados. ¿Querés que te pase más info?",
-  },
-  {
-    id: "promo_kits",
-    label: "Promo kits para eventos",
-    message:
-      "Hola {nombre}! Cómo estás? Te escribo de La Casa del Detalle 😊 Vi que nos consultaste por {articulo}. Tenemos opciones ideales para eventos y regalos personalizados. ¿Querés que te comparta algunas opciones?",
-  },
+  ...productOptions.map((product) => ({
+    id: `oferta_${product.value
+      .toLowerCase()
+      .replaceAll(/\s+/g, "_")
+      .replaceAll(/[^a-z0-9_]/g, "")}`,
+    label: product.label,
+    message: `Hola {nombre}! Cómo estás? Te escribo de La Casa del Detalle 😊 Hace unos días nos consultaste por {articulo}. Quería contarte que tenemos propuestas y promos disponibles para ${product.label}. ¿Querés que te pase más info?`,
+  })),
   {
     id: "oferta_general",
     label: "Oferta general LCDD",

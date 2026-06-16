@@ -415,15 +415,6 @@ export default function ConsultasPage() {
             Bandeja de leads con seguimiento por recontacto, cambios de estado y ofertas por WhatsApp.
           </Text>
         </Stack>
-        <Button
-          variant="light"
-          color="brand"
-          leftSection={<IconSend size={18} />}
-          onClick={handleOpenBulkOffer}
-          fullWidth={isMobile}
-        >
-          Crear oferta para leads
-        </Button>
       </Group>
 
       <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
@@ -739,7 +730,9 @@ export default function ConsultasPage() {
                 onChange={(event) =>
                   setSingleOffer((prev) => ({ ...prev, message: event.currentTarget.value }))
                 }
-                minRows={8}
+                autosize
+                minRows={12}
+                maxRows={18}
               />
               {normalizePhone(singleOffer.consulta.telefono) ? (
                 <Button
