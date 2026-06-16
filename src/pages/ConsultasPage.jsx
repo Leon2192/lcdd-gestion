@@ -20,10 +20,13 @@ import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   IconBrandWhatsapp,
+  IconCalendarStats,
+  IconFilter,
   IconInfoCircle,
   IconMessageCircle,
   IconPencil,
   IconRosetteDiscountCheck,
+  IconSearch,
   IconSend,
   IconTrash,
 } from "@tabler/icons-react";
@@ -495,6 +498,9 @@ export default function ConsultasPage() {
                 label="Buscar lead"
                 placeholder="Nombre, teléfono o artículo"
                 value={filters.search}
+                size="md"
+                radius="md"
+                leftSection={<IconSearch size={16} stroke={1.8} />}
                 onChange={(event) => {
                   const value = event.currentTarget.value;
                   setFilters((prev) => ({ ...prev, search: value }));
@@ -508,6 +514,9 @@ export default function ConsultasPage() {
                 value={filters.estado}
                 onChange={(value) => setFilters((prev) => ({ ...prev, estado: value || "" }))}
                 placeholder="Todos los estados"
+                size="md"
+                radius="md"
+                leftSection={<IconFilter size={16} stroke={1.8} />}
                 clearable
               />
             </Grid.Col>
@@ -519,6 +528,12 @@ export default function ConsultasPage() {
                 value={filters.dateRange}
                 onChange={(value) => setFilters((prev) => ({ ...prev, dateRange: value }))}
                 valueFormat="DD/MM/YYYY"
+                size="md"
+                radius="md"
+                leftSection={<IconCalendarStats size={16} stroke={1.8} />}
+                firstDayOfWeek={1}
+                numberOfColumns={isMobile ? 1 : 2}
+                dropdownType={isMobile ? "modal" : "popover"}
                 clearable
               />
             </Grid.Col>

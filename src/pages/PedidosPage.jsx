@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconCalendarStats, IconInfoCircle } from "@tabler/icons-react";
+import { IconCalendarStats, IconFilter, IconInfoCircle } from "@tabler/icons-react";
 import FloatingActionButton from "../components/FloatingActionButton";
 import ModalForm from "../components/ModalForm";
 import PedidoCard from "../components/PedidoCard";
@@ -243,6 +243,9 @@ export default function PedidosPage() {
                 value={filters.estado}
                 onChange={(value) => setFilters((prev) => ({ ...prev, estado: value || "" }))}
                 placeholder="Todos los estados"
+                size="md"
+                radius="md"
+                leftSection={<IconFilter size={16} stroke={1.8} />}
                 clearable
               />
             </Grid.Col>
