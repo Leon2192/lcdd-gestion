@@ -27,6 +27,12 @@ import { pedidoStatusOptions } from "../lib/pedidos";
 import { initialPedidoForm, mapPedidoToForm } from "../lib/pedidoForm";
 
 const PEDIDOS_PER_PAGE = 6;
+const pedidoSortOptions = [
+  { value: "created_desc", label: "Creación: más recientes primero" },
+  { value: "created_asc", label: "Creación: más antiguos primero" },
+  { value: "event_asc", label: "Evento: más próximos primero" },
+  { value: "event_desc", label: "Evento: más lejanos primero" },
+];
 
 export default function PedidosPage() {
   const isMobile = useMediaQuery("(max-width: 48em)");
@@ -39,11 +45,12 @@ export default function PedidosPage() {
   const [filters, setFilters] = useState({
     dateRange: [null, null],
     estado: "",
+    sortBy: "created_desc",
   });
   const [page, setPage] = useState(1);
 
   const filteredPedidos = useMemo(() => {
-    return pedidos.filter((pedido) => {
+    const filtered = pedidos.filter((pedido) => {
       const [fromDate, toDate] = filters.dateRange;
       const pedidoCreatedAt = pedido.created_at ? new Date(pedido.created_at) : null;
       const fromDateStart = getStartOfDay(fromDate);
@@ -66,6 +73,27 @@ export default function PedidosPage() {
       }
 
       return true;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const createdA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const createdB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      const eventA = a.fecha_evento ? new Date(`${a.fecha_evento}T00:00:00`).getTime() : 0;
+      const eventB = b.fecha_evento ? new Date(`${b.fecha_evento}T00:00:00`).getTime() : 0;
+
+      if (filters.sortBy === "created_asc") {
+        return createdA - createdB;
+      }
+
+      if (filters.sortBy === "event_asc") {
+        return eventA - eventB;
+      }
+
+      if (filters.sortBy === "event_desc") {
+        return eventB - eventA;
+      }
+
+      return createdB - createdA;
     });
   }, [pedidos, filters]);
 
@@ -91,7 +119,7 @@ export default function PedidosPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filters.dateRange, filters.estado]);
+  }, [filters.dateRange, filters.estado, filters.sortBy]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -109,6 +137,7 @@ export default function PedidosPage() {
     setFilters({
       dateRange: [null, null],
       estado: "",
+      sortBy: "created_desc",
     });
   }
 
@@ -219,7 +248,7 @@ export default function PedidosPage() {
           </Group>
 
           <Grid>
-            <Grid.Col span={{ base: 12, md: 7 }}>
+            <Grid.Col span={{ base: 12, md: 6 }}>
               <DatePickerInput
                 type="range"
                 label="Rango de fechas de creación"
@@ -236,7 +265,7 @@ export default function PedidosPage() {
                 clearable
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 5 }}>
+            <Grid.Col span={{ base: 12, md: 3 }}>
               <Select
                 label="Estado"
                 data={pedidoStatusOptions}
@@ -247,6 +276,20 @@ export default function PedidosPage() {
                 radius="md"
                 leftSection={<IconFilter size={16} stroke={1.8} />}
                 clearable
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 3 }}>
+              <Select
+                label="Ordenar por"
+                data={pedidoSortOptions}
+                value={filters.sortBy}
+                onChange={(value) =>
+                  setFilters((prev) => ({ ...prev, sortBy: value || "created_desc" }))
+                }
+                size="md"
+                radius="md"
+                leftSection={<IconFilter size={16} stroke={1.8} />}
+                allowDeselect={false}
               />
             </Grid.Col>
           </Grid>
