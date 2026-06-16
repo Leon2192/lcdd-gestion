@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconCalendarStats, IconInfoCircle } from "@tabler/icons-react";
 import FloatingActionButton from "../components/FloatingActionButton";
 import ModalForm from "../components/ModalForm";
 import PedidoCard from "../components/PedidoCard";
@@ -227,6 +227,12 @@ export default function PedidosPage() {
                 value={filters.dateRange}
                 onChange={(value) => setFilters((prev) => ({ ...prev, dateRange: value }))}
                 valueFormat="DD/MM/YYYY"
+                size="md"
+                radius="md"
+                leftSection={<IconCalendarStats size={16} stroke={1.8} />}
+                firstDayOfWeek={1}
+                numberOfColumns={isMobile ? 1 : 2}
+                dropdownType={isMobile ? "modal" : "popover"}
                 clearable
               />
             </Grid.Col>
